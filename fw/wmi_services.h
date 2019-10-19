@@ -418,36 +418,7 @@ typedef  enum  {
      */
     WMI_SERVICE_QMI_STATS_SUPPORT = 225,
     WMI_SERVICE_CFR_CAPTURE_FILTER_SUPPORT = 226, /* Indicate FW Supports Channel Frequency Response (CFR) via WMI_CFR_CAPTURE_FILTER_CMDID */
-    WMI_SERVICE_STA_BSS_MAX_IDLE_TIME = 227, /* Indicate FW supports BSS Max Idle time feature via WMI_VDEV_BSS_MAX_IDLE_TIME_CMDID */
-    WMI_SERVICE_BIP_CIPHER_SUPPORT = 228, /* FW supports new BIP_CIPHER suites (WMI_CIPHER_BIP_xxx) */
-    WMI_SERVICE_BW_165MHZ_SUPPORT = 229, /* Indicate FW supports bandwidth 165MHz (i.e. 6 GHz in addition to 2.4 and 5) */
-    WMI_SERVICE_BW_RESTRICTED_80P80_SUPPORT = WMI_SERVICE_BW_165MHZ_SUPPORT,
-    WMI_SERVICE_NAN_NDI_SAP_SAP_SCC_SUPPORT = 230, /* Support SAP + SAP + NAN discovery + NDI concurrency in SCC mode */
-    WMI_SERVICE_NAN_VDEV_SUPPORT = 231, /* indicates firmware is dependent on host to create NAN vdev */
-    WMI_SERVICE_AUDIO_SYNC_SUPPORT = 232, /* Indicate FW supports Audio sync feature */
-    WMI_SERVICE_DUAL_STA_ROAM_SUPPORT = 233, /* Indidate FW support dual STA roaming */
-    WMI_SERVICE_PEER_CREATE_CONF = 234, /* Target will send WMI_PEER_CREATE_CONF_EVENTID after WMI_PEER_CREATE_CMDID is processed */
-    WMI_SERVICE_MULTIPLE_VDEV_RESTART_RESPONSE_SUPPORT = 235, /* indicates firmware supports Multiple vdev restart response */
-    WMI_SERVICE_ROAM_SCAN_CHANNEL_LIST_TO_HOST_SUPPORT = 236, /* Indicates firmware supports sending roam scan channel list to host */
-    WMI_SERVICE_PEER_DELETE_NO_PEER_FLUSH_TIDS_CMD = 237, /* Host should not send WMI_PEER_FLUSH_TIDS_CMD as part of peer delete */
-    WMI_SERVICE_NSS_RATIO_TO_HOST_SUPPORT = 238, /* Indicates firmware supports sending NSS ratio info to host */
-    WMI_SERVICE_WPA3_SUITEB_ROAM_SUPPORT = 239, /* Indicates FW supports WPA3 SUITE B roaming */
-    WMI_SERVICE_PERIODIC_FRAME_INJECT_SUPPORT = 240, /* Indicates FW supports periodic frame injection */
-    WMI_SERVICE_NDI_NDI_STA_SUPPORT = 241, /* Indicates FW support for STA+NDI+NDI */
-    WMI_SERVICE_BW_TRUE_160_SUPPORT = 242, /* Indicates FW supports true 160 BW */
-    WMI_SERVICE_HOST_SCAN_STOP_VDEV_ALL_SUPPORT = 243, /* Indicates FW supports scan stop mode WMI_SCN_STOP_HOST_VAP_ALL */
-    WMI_SERVICE_BEACON_PROTECTION_SUPPORT = 244, /* Indicates FW supports WPA3 Beacon protection */
-    WMI_SERVICE_EMA_AP_SUPPORT = 245, /* FW supports EMA AP feature */
-    WMI_SERVICE_PEER_POWER_SAVE_DURATION_SUPPORT = 246, /* Support for adding Power save duration per client */
-    WMI_SERVICE_5_DOT_9GHZ_SUPPORT = 247, /* Indicates FW supports new 5.9GHZ (scan, connection and so on) */
-    WMI_SERVICE_MU_PREAMBLE_PUNCTURE_SUPPORT = 248, /* Indicates FW supports MU preamble puncture */
-    WMI_SERVICE_SRG_SRP_SPATIAL_REUSE_SUPPORT = 249, /* Support for SRG, SRP based spatial reuse support */
-    WMI_REQUEST_CTRL_PATH_STATS_REQUEST = 250, /* FW supports control path stats */
-    WMI_SERVICE_TPC_STATS_EVENT = 251, /* FW support to dump the TPC tables */
-    WMI_SERVICE_NO_INTERBAND_MCC_SUPPORT = 252, /* Indicates FW doesn't support interband MCC */
-    WMI_SERVICE_MBSS_PARAM_IN_VDEV_START_SUPPORT = 253, /* FW supports VDEV's MBSS param exchange in VDEV start command */
-    WMI_SERVICE_CONFIGURE_ROAM_TRIGGER_PARAM_SUPPORT = 254, /* FW supports ROAM trigger configuration param TLV */
-    WMI_SERVICE_CFR_TA_RA_AS_FP_SUPPORT = 255, /* indicates FW support to program CFR TA/RA filtered packets as Filter pass */
+
 
 
     /******* ADD NEW SERVICES UP TO 256 HERE *******/
@@ -500,7 +471,6 @@ typedef  enum  {
 #define WMI_SERVICE_BM_SIZE   ((WMI_MAX_SERVICE + sizeof(A_UINT32)- 1)/sizeof(A_UINT32))
 
 #define WMI_NUM_EXT_SERVICES (WMI_MAX_EXT_SERVICE - WMI_MAX_SERVICE)
-#define WMI_NUM_EXT2_SERVICES (WMI_MAX_EXT2_SERVICE - WMI_MAX_EXT_SERVICE)
 
 /*
  * TEMPORARY WORKAROUND
