@@ -264,6 +264,7 @@ typedef enum {
     WMI_GRP_HPCS_PULSE,     /* 0x42 */
     WMI_GRP_AUDIO,          /* 0x43 */
     WMI_GRP_CFR_CAPTURE,    /* 0x44 */
+    WMI_GRP_ATM,            /* 0x45 ATM (Air Time Management group) */
 } WMI_GRP_ID;
 
 #define WMI_CMD_GRP_START_ID(grp_id) (((grp_id) << 12) | 0x1)
@@ -517,18 +518,6 @@ typedef enum {
     WMI_VDEV_DELETE_ALL_PEER_CMDID,
     /* To set bss max idle time related parameters */
     WMI_VDEV_BSS_MAX_IDLE_TIME_CMDID,
-    /** Indicates FW to trigger Audio sync  */
-    WMI_VDEV_AUDIO_SYNC_TRIGGER_CMDID,
-    /** Gives Qtimer value  to FW  */
-    WMI_VDEV_AUDIO_SYNC_QTIMER_CMDID,
-    /** Preferred channel list for each vdev */
-    WMI_VDEV_SET_PCL_CMDID,
-    /** VDEV_GET_BIG_DATA_CMD IS DEPRECATED - DO NOT USE */
-    WMI_VDEV_GET_BIG_DATA_CMDID,
-    /** Get per vdev BIG DATA stats phase 2 */
-    WMI_VDEV_GET_BIG_DATA_P2_CMDID,
-    /** set TPC PSD/non-PSD power */
-    WMI_VDEV_SET_TPC_POWER_CMDID,
 
     /* peer specific commands */
 
@@ -668,8 +657,6 @@ typedef enum {
     WMI_VDEV_BCN_OFFLOAD_QUIET_CONFIG_CMDID,
     /** set FILS Discovery frame template for FW to generate FD frames */
     WMI_FD_TMPL_CMDID,
-    /** Transmit QoS null Frame over wmi interface */
-    WMI_QOS_NULL_FRAME_TX_SEND_CMDID,
 
     /** commands to directly control ba negotiation directly from host. only used in test mode */
 
@@ -1328,6 +1315,14 @@ typedef enum {
 
     /** WMI commands related to Channel Frequency Response Capture **/
     WMI_CFR_CAPTURE_FILTER_CMDID = WMI_CMD_GRP_START_ID(WMI_GRP_CFR_CAPTURE),
+
+    /** WMI commands related to Air Time Management feature **/
+    /** ATF SSID GROUPING REQUEST command */
+    WMI_ATF_SSID_GROUPING_REQUEST_CMDID = WMI_CMD_GRP_START_ID(WMI_GRP_ATM),
+    /** WMM ATF Configuration for groups */
+    WMI_ATF_GROUP_WMM_AC_CONFIG_REQUEST_CMDID,
+    /** ATF Peer Extended Request command */
+    WMI_PEER_ATF_EXT_REQUEST_CMDID,
 } WMI_CMD_ID;
 
 typedef enum {
@@ -3414,20 +3409,6 @@ typedef struct {
     #define WMI_RSRC_CFG_FLAG_BSS_MAX_IDLE_TIME_SUPPORT_S 28
     #define WMI_RSRC_CFG_FLAG_BSS_MAX_IDLE_TIME_SUPPORT_M 0x10000000
 
-    /*
-     * If this bit is set, then target should use the audio sync feature.
-     * Host should only set this bit if the target has indicated via the
-     * WMI_SERVICE_AUDIO_SYNC_SUPPORT flag that it supports audio sync.
-     */
-    #define WMI_RSRC_CFG_FLAG_AUDIO_SYNC_SUPPORT_S  29
-    #define WMI_RSRC_CFG_FLAG_AUDIO_SYNC_SUPPORT_M 0x20000000
-
-    /*
-     * If this BIT is set, then the target should disable IPA
-     */
-    #define WMI_RSRC_CFG_FLAG_IPA_DISABLE_S 30
-    #define WMI_RSRC_CFG_FLAG_IPA_DISABLE_M 0x40000000
-
     A_UINT32 flag1;
 
     /** @brief smart_ant_cap - Smart Antenna capabilities information
@@ -3613,96 +3594,9 @@ typedef struct {
      *
      *      Refer to the below WMI_RSRC_CFG_FLAGS2_RE_ULRESP_PDEV_CFG_GET/SET
      *      macros.
-     *  Bits 5:4
-     *      HTT rx peer metadata version number that host supports.
-     *      Firmware intially sends the target supported version number
-     *      as part of service_ready_ext2 message.
-     *      Host can ack the version number that it is using as part of
-     *      this message.
-     *      0-> legacy case
-     *      1-> MLO support
-     *      2-3-> Reserved
-     *      Refer to the WMI_RSRC_CFG_FLAGS2_RX_PEER_METADATA_VERSION macros.
-     *  Bits 31:6 - Reserved
+     *  Bits 31:4 - Reserved
      */
     A_UINT32 flags2;
-    /** @brief host_service_flags - can be used by Host to indicate
-     * services that host can support.
-     *
-     *  @details
-     *  Bit 0
-     *      The bit will be set when Host HDD supports seperate iface creation
-     *      for NAN.  More specifically Host can support creation of NAN vdev
-     *      in firmware.
-     *
-     *      Refer to WMI_RSRC_CFG_HOST_SERVICE_FLAG_NAN_IFACE_SUPPORT_GET/SET
-     *      macros defined below.
-     *  Bit 1
-     *      The bit will be set when HOST is capable of processing multiple
-     *      radio events per radio. More specifically whenever Firmware is
-     *      sending multiple radio events (WMI_RADIO_LINK_STATS_EVENTID
-     *      = 0x16004) for a single radio,
-     *      Through this flag Firmware will know that HOST is able to support
-     *      delivery of RADIO_LINK_STATS across multiple event messages,
-     *      and Firmware can send multiple radio events.
-     *
-     *      Refer to WMI_RSRC_CFG_HOST_SERVICE_FLAG_HOST_SUPPORT_MULTI_RADIO_EVTS_PER_RADIO_GET/SET
-     *      macros defined below.
-     *  Bit 2
-     *      This bit will be set when host is able to handle split AST feature.
-     *      Refer to the below definitions of the
-     *      WMI_RSRC_CFG_HOST_SERVICE_FLAG_SPLIT_AST_FEATURE_HOST_SUPPORT_GET
-     *      and _SET macros.
-     *  Bits 31:3 - Reserved
-     */
-    A_UINT32 host_service_flags;
-
-    /** @brief max_rnr_neighbours -
-     * The Maximum number of neighbour RNR's from other SoC.
-     * This limits the field @num_bss in @wmi_pdev_tbtt_offset_sync_cmd_fixed_param.
-     * Value of 0 means crosss SoC TBTT offset syncronization not required and
-     * @PDEV_TBTT_OFFSET_SYNC_CMD wouldn't be used.
-     */
-    A_UINT32 max_rnr_neighbours;
-
-    /** @brief ema_max_vap_cnt - number of maximum EMA Tx vaps (VAPs having both
-     *  VDEV_FLAGS_EMA_MODE and VDEV_FLAGS_TRANSMIT_AP set) at any instance
-     * of time across SOC. Legacy MBSS Vaps are not accounted in this field.
-     */
-    A_UINT32 ema_max_vap_cnt;
-
-    /** @brief ema_max_profile_period - maximum profile periodicity
-     * (maximum number of beacons after which VAP profiles repeat)
-     * for any EMA VAP on any pdev.
-     */
-
-    A_UINT32 ema_max_profile_period;
-    /** @brief max_ndp_sessions
-     * This is the max ndp sessions sent by the host which is the minimum
-     * of the value requested within the host's ini configurations and
-     * the max ndp sessions supported by the firmware (as reported in the
-     * SERVICE_READY_EXT2_EVENT message).
-     */
-    A_UINT32 max_ndp_sessions;
-
-    /** @brief max_ndi_supported
-     * This is the max ndi interfaces sent by the host based on the value
-     * specified by the host's ini configuration.
-     */
-    A_UINT32 max_ndi_interfaces;
-
-    /** @brief max_ap_vaps
-     * Maximum number of AP mode vdevs created at any time.
-     * This value is minimum of the number of AP vdevs supported by
-     * the target and host.
-     */
-    A_UINT32 max_ap_vaps;
-
-    /** @brief cbc_flow_ena
-     * When cbc_flow_ena is se, halphy will do Cold Boot Calibration flow.
-     * Otherwise, halphy will do normal flow.
-     */
-    A_UINT32 cbc_flow_ena;
 } wmi_resource_config;
 
 #define WMI_MSDU_FLOW_AST_ENABLE_GET(msdu_flow_config0, ast_x) \
@@ -3887,40 +3781,10 @@ typedef struct {
 #define WMI_RSRC_CFG_FLAG_BSS_MAX_IDLE_TIME_SUPPORT_GET(word32) \
     WMI_RSRC_CFG_FLAG_GET((word32), BSS_MAX_IDLE_TIME_SUPPORT)
 
-#define WMI_RSRC_CFG_FLAG_AUDIO_SYNC_SUPPORT_SET(word32, value) \
-    WMI_RSRC_CFG_FLAG_SET((word32), AUDIO_SYNC_SUPPORT, (value))
-#define WMI_RSRC_CFG_FLAG_AUDIO_SYNC_SUPPORT_GET(word32) \
-    WMI_RSRC_CFG_FLAG_GET((word32), AUDIO_SYNC_SUPPORT)
-
-#define WMI_RSRC_CFG_FLAG_IPA_DISABLE_SET(word32, value) \
-    WMI_RSRC_CFG_FLAG_SET((word32), IPA_DISABLE, (value))
-#define WMI_RSRC_CFG_FLAG_IPA_DISABLE_GET(word32) \
-    WMI_RSRC_CFG_FLAG_GET((word32), IPA_DISABLE)
-
 #define WMI_RSRC_CFG_FLAGS2_RE_ULRESP_PDEV_CFG_GET(flags2, pdev_id) \
     WMI_GET_BITS(flags2, pdev_id, 1)
 #define WMI_RSRC_CFG_FLAGS2_RE_ULRESP_PDEV_CFG_SET(flags2, pdev_id, value) \
     WMI_SET_BITS(flags2, pdev_id, 1, value)
-
-#define WMI_RSRC_CFG_FLAGS2_RX_PEER_METADATA_VERSION_GET(flags2) \
-    WMI_GET_BITS(flags2, 4, 2)
-#define WMI_RSRC_CFG_FLAGS2_RX_PEER_METADATA_VERSION_SET(flags2, value) \
-    WMI_SET_BITS(flags2, 4, 2, value)
-
-#define WMI_RSRC_CFG_HOST_SERVICE_FLAG_NAN_IFACE_SUPPORT_GET(host_service_flags) \
-    WMI_GET_BITS(host_service_flags, 0, 1)
-#define WMI_RSRC_CFG_HOST_SERVICE_FLAG_NAN_IFACE_SUPPORT_SET(host_service_flags, val) \
-    WMI_SET_BITS(host_service_flags, 0, 1, val)
-
-#define WMI_RSRC_CFG_HOST_SERVICE_FLAG_HOST_SUPPORT_MULTI_RADIO_EVTS_PER_RADIO_GET(host_service_flags) \
-    WMI_GET_BITS(host_service_flags, 1, 1)
-#define WMI_RSRC_CFG_HOST_SERVICE_FLAG_HOST_SUPPORT_MULTI_RADIO_EVTS_PER_RADIO_SET(host_service_flags, val) \
-    WMI_SET_BITS(host_service_flags, 1, 1, val)
-
-#define WMI_RSRC_CFG_HOST_SERVICE_FLAG_SPLIT_AST_FEATURE_HOST_SUPPORT_GET(host_service_flags) \
-    WMI_GET_BITS(host_service_flags, 2, 1)
-#define WMI_RSRC_CFG_HOST_SERVICE_FLAG_SPLIT_AST_FEATURE_HOST_SUPPORT_SET(host_service_flags, val) \
-    WMI_SET_BITS(host_service_flags, 2, 1, val)
 
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_init_cmd_fixed_param */
@@ -4356,12 +4220,18 @@ typedef enum {
 /* Indicate client hint req is high priority than fw rnr or FILS disc */
 #define WMI_SCAN_FLAG_EXT_6GHZ_CLIENT_HIGH_PRIORITY   0x00000080
 
+/* Force all 6ghz scan channels to active channel */
+#define WMI_SCAN_FLAG_EXT_6GHZ_FORCE_CHAN_ACTIVE      0x00000100
+
 /**
  * new 6 GHz flags per chan (short ssid or bssid) in struct
  * wmi_hint_freq_short_ssid or wmi_hint_freq_bssid
  */
 /* Indicate not to send probe req for short_ssid or bssid on that channel */
 #define WMI_SCAN_HINT_FLAG_SKIP_TX_PROBE_REQ    0x00000001
+
+/* Force channel in WMI hint to active channel */
+#define WMI_SCAN_HINT_FLAG_FORCE_CHAN_ACTIVE    0x00000002
 
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_stop_scan_cmd_fixed_param */
@@ -6831,98 +6701,6 @@ typedef enum {
      * favor of manual mode or host control mode.
      */
     WMI_PDEV_PARAM_ENABLE_FW_DYNAMIC_HE_EDCA,
-
-    /*
-     * Parameter used to set default 6 GHz rate.
-     * Applies to all non data transmissions in 6 GHz unless
-     * overwritten by respective VDEV params.
-     */
-    WMI_PDEV_PARAM_DEFAULT_6GHZ_RATE,
-
-    /*
-     * Configures the duration (in seconds) to delay the channel avoidance
-     * indication at WLAN firmware before indicating it to WLAN host,
-     * when WWAN (LTE/5GNR) PCC is in conflict due to WWAN-WLAN coexistence.
-     * Default value is 60 seconds.
-     * If set to zero, FW sends channel avoidance indcation immediately to Host.
-     */
-    WMI_PDEV_PARAM_MWSCOEX_PCC_CHAVD_DELAY,
-
-    /*
-     * Configures the duration (in seconds) to delay the channel avoidance
-     * indication at WLAN firmware before indicating it to WLAN host,
-     * when WWAN (LTE/5GNR) SCC is in conflict due to WWAN-WLAN coexistence.
-     * Default value is 120 seconds.
-     * If set to zero, FW sends channel avoidance indcation immediately to Host.
-     */
-    WMI_PDEV_PARAM_MWSCOEX_SCC_CHAVD_DELAY,
-
-    /*
-     * Parameter used to set ageout timer value from host (units = seconds).
-     * If not set, FW use default value 2 seconds.
-     * ageout time: the time upto which DFS channel information such as
-     * beacon found is remembered
-     */
-    WMI_PDEV_PARAM_SET_DFS_CHAN_AGEOUT_TIME,
-
-    /* Parameter used for enabling/disabling xlna bypass for SAP mode*/
-    WMI_PDEV_PARAM_SET_SAP_XLNA_BYPASS,
-
-    /* Parameter used to enable/disable SRP feature */
-    WMI_PDEV_PARAM_ENABLE_SRP,
-
-    /* Parameter used to enable/disable SR prohibit feature */
-    WMI_PDEV_PARAM_ENABLE_SR_PROHIBIT,
-
-    /*
-     * Parameter used to enable/disable UL OFDMA mBSSID support for
-     * trigger frames. It is disabled by default.
-     * bit | config_mode
-     * -----------------
-     *  0  | Enable/Disable mBSSID trigger support for basic triggers.
-     *  1  | Enable/Disable mBSSID trigger support for BSR triggers.
-     */
-    WMI_PDEV_PARAM_ENABLE_MBSSID_CTRL_FRAME,
-
-    /*
-     * Parameter to set preamble punctured band as a bitmask, i.e.
-     * which 20MHz in the 80MHz bandwidth or 40MHz in 160MHz bandwidth.
-     * E.g. if first 20MHz is the primary and preamble puncturing is
-     * desired for 3rd 20Mhz, then the host will send 0x0100.
-     * FW doesn't expect the primary 20MHz to be punctured.
-     * This param is required only for 11ax release.
-     */
-    WMI_PDEV_PARAM_SET_PREAM_PUNCT_BW,
-
-    /*
-     * Parameter used to set the Margin dB value to be included for calculating
-     * the spatial reuse value in common info field of the UL Trigger frame.
-     * Accepted value as per Spec are 0 to 5 dB (inclusive).
-     */
-    WMI_PDEV_PARAM_SR_TRIGGER_MARGIN,
-
-    /* Param to enable/disable PCIE HW ILP */
-    WMI_PDEV_PARAM_PCIE_HW_ILP,
-
-    /*
-     * Configure the TXTD_START_TIMESTAMP parameters
-     * The timestamp units are nanoseconds.
-     * This parameter can be used to adjust at what point the TXTD module
-     * will start operating after the STA connects to an AP.
-     */
-    WMI_PDEV_PARAM_SET_TXTD_START_TIMESTAMP,
-
-    /*
-     * Parameter to configure and enable/disable features for mesh usecases
-     * bit    | config_mode
-     * -----------------
-     *  0     | Set to 1 to disable BSSID based spatial reuse.
-     *  1-31  | Reserved.
-     */
-    WMI_PDEV_PARAM_SET_MESH_PARAMS,
-
-    /* Param to enable low latency mode */
-    WMI_PDEV_PARAM_LOW_LATENCY_SCHED_MODE,
 
 } WMI_PDEV_PARAM;
 
@@ -10702,20 +10480,6 @@ typedef struct {
     A_UINT32 regdomain;
     /* min data rate to be used in BSS in Mbps */
     A_UINT32 min_data_rate;
-
-    /** @mbss_capability_flags: Bitmap of vdev's MBSS/EMA capability.
-     *  Capabilities are combination of below flags:
-     *     VDEV_FLAGS_NON_MBSSID_AP
-     *     VDEV_FLAGS_TRANSMIT_AP
-     *     VDEV_FLAGS_NON_TRANSMIT_AP
-     *     VDEV_FLAGS_EMA_MODE
-     *     VDEV_FLAGS_SCAN_MODE_VAP - if the vdev is used for scan radio
-     */
-    A_UINT32 mbss_capability_flags;
-
-    /** vdevid of transmitting VAP (mbssid case). Ignored for non mbssid case */
-    A_UINT32 vdevid_trans;
-
 /* The TLVs follows this structure:
  *     wmi_channel chan; <-- WMI channel
  *     wmi_p2p_noa_descriptor  noa_descriptors[]; <-- actual p2p NOA descriptor from scan entry
@@ -10881,31 +10645,9 @@ typedef enum {
 /* Control to enable/disable FILS discovery frame tx in non-HT duplicate */
 #define WMI_VDEV_6GHZ_BITMAP_NON_HT_DUPLICATE_FD_FRAME                  0x4
 /* Control to enable/disable periodic FILS discovery frame transmission */
-#define WMI_VDEV_6GHZ_BITMAP_FD_FRAME                                   0x8  /* deprecated */
+#define WMI_VDEV_6GHZ_BITMAP_FD_FRAME                                   0x8
 /* Control to enable/disable periodic broadcast probe response transmission */
-#define WMI_VDEV_6GHZ_BITMAP_BCAST_PROBE_RSP                            0x10 /* deprecated */
-
-/** ROAM_11KV control params */
-
-/* WMI_VDEV_ROAM_11KV_CTRL_DISABLE_FW_TRIGGER_ROAMING:
- * Disable all FW-triggered roaming (e.g. low RSSI/final bmiss/BTM/PER)
- * while still allowing host-invoked roaming.
- */
-#define WMI_VDEV_ROAM_11KV_CTRL_DISABLE_FW_TRIGGER_ROAMING              0x1
-/* WMI_VDEV_ROAM_11KV_CTRL_KEEP_CONN_RECV_BTM_REQ:
- * DUT do not scan or roaming when receiving BTM req frame
- */
-#define WMI_VDEV_ROAM_11KV_CTRL_KEEP_CONN_RECV_BTM_REQ                  0x2
-/* WMI_VDEV_ROAM_11KV_CTRL_DONOT_SEND_DISASSOC_ON_BTM_DI_SET:
- * DUT do not send disasoc frame to AP when receiving BTM req with
- * Disassoc Imminent bit set to 1.
- */
-#define WMI_VDEV_ROAM_11KV_CTRL_DONOT_SEND_DISASSOC_ON_BTM_DI_SET       0x4
-
-
-/** NAN vdev config Feature flags */
-#define WMI_VDEV_NAN_ALLOW_DW_CONFIG_CHANGE_IN_SYNC_ROLE                0x1
-
+#define WMI_VDEV_6GHZ_BITMAP_BCAST_PROBE_RSP                            0x10
 
 /** the definition of different VDEV parameters */
 typedef enum {
@@ -11637,6 +11379,15 @@ typedef enum {
      */
     WMI_VDEV_PARAM_NDP_INACTIVITY_TIMEOUT,     /* 0x97 */
 
+    /* To enable/disable multicast rate adaptation feature at vdev level */
+    WMI_VDEV_PARAM_ENABLE_MCAST_RC,            /* 0x98 */
+
+    /*
+     * Params related to 6GHz operation
+     * The parameter value is formed from WMI_VDEV_6GHZ_BITMAP flags.
+     */
+    WMI_VDEV_PARAM_6GHZ_PARAMS,                /* 0x99 */
+
     /*=== ADD NEW VDEV PARAM TYPES ABOVE THIS LINE ===
      * The below vdev param types are used for prototyping, and are
      * prone to change.
@@ -12139,45 +11890,6 @@ typedef struct {
      * Only non-zero values are considered.
      */
     A_UINT32 mu_edca_ie_offset;
-    /** Specify features that need to be enabled/disabled for the beacon.
-     *
-     * Bit 0:
-     *     Beacon Protection feature enable/disable indication.
-     *     Refer to WMI_BEACON_PROTECTION_EN_SET/GET macros.
-     *
-     * More features can be added to this bitmap.
-     */
-    A_UINT32 feature_enable_bitmap;
-
-    /**
-     * @ema_params: Applicable only for EMA tx VAPs (VAPs having both flags
-     *         VDEV_FLAGS_EMA_MODE and VDEV_FLAGS_TRANSMIT_AP set) and should
-     *         remain 0 otherwise. For EMA vaps it carries below information
-     *         encoded in each byte:
-     * Byte 0: (@ema_beacon_profile_periodicity) - beacon profile periodicity
-     *         (number of beacons) after which nontransmitted MBSS info repeats.
-     *         Assumes values [1, N] inclusive.
-     *         Refer to WMI_BEACON_TMPLT_[SET,GET]_PROFILE_PERIOD macros.
-     * Byte 1: (@ema_beacon_tmpl_idx) -  Specifies the position of beacon
-     *         templates within profile periodicity.
-     *         Assumes values [0, ema_beacon_profile_periodicity-1] inclusive.
-     *         Multiple templates having same @ema_beacon_max_tmpl_idx will
-     *         overwrite previous template.
-     *         Refer to WMI_BEACON_TMPLT_[SET,GET]_TEMPLATE_INDEX macros.
-     * Byte 2: (@ema_first_tmpl) - Specifies whether it's a last template in
-     *         sequence of @ema_beacon_profile_periodicity templates
-     *         (end of new template update exchange).
-     *         If this template is the only template being updated,
-     *         @ema_first_tmpl and @ema_last_tmpl both shall be set to 1.
-     *         Refer to WMI_BEACON_TMPLT_[SET,GET]_FIRST_TEMPLATE macros.
-     * Byte 3: (@ema_last_tmpl) - pecifies whether it's a last template in
-     *         sequence of @ema_beacon_profile_periodicity templates
-     *         (end of new template update exchange).
-     *         If this template is the only template being updated,
-     *         @ema_first_tmpl and @ema_last_tmpl both shall be set to 1.
-     *         Refer to WMI_BEACON_TMPLT_[SET,GET]_LAST_TEMPLATE macros.
-     */
-    A_UINT32 ema_params;
 
 /*
  * The TLVs follows:
@@ -13642,33 +13354,6 @@ typedef struct {
 
     /* min data rate to be used in Mbps */
     A_UINT32 min_data_rate;
-
-    /** HE 6 GHz Band Capabilities of the peer.
-     * (Defined in 9.4.2.261 HE 6GHz Band Capabilities element in 802.11ax_D5.0)
-     * valid when WMI_PEER_HE is set and WMI_PEER_VHT/HT are not set.
-     */
-    A_UINT32 peer_he_caps_6ghz;
-
-    /* bit[0-7] : sta_type
-     * bit[8-31]: reserved
-     * Refer to enum WMI_PEER_STA_TYPE for sta_type values.
-     * Refer to WMI_PEER_STA_TYPE_GET/SET macros.
-     */
-    A_UINT32 sta_type;
-
-    /*
-     * @bss_max_idle_option - Parameters exchanged for BSS Max Idle capability.
-     * bit 0       : If set, only a protected frame indicates activity.
-     *               If cleared, either an unprotected or a protected frame
-     *               indicates activity.
-     *               Refer to the WMI_PEER_ASSOC_[SET,GET]_BSS_MAX_IDLE_OPTION
-     *               macros.
-     * bit [1:15]  : Reserved
-     * bit [16:31] : Max idle period in units of 1000 TUs
-     *               Refer to the WMI_PEER_ASSOC_[SET,GET]_BSS_MAX_IDLE_PERIOD
-     *               macros.
-     */
-    A_UINT32 bss_max_idle_option;
 
 /* Following this struct are the TLV's:
  *     A_UINT8 peer_legacy_rates[];
@@ -24540,274 +24225,6 @@ typedef struct {
      */
 } wmi_atf_grp_wmm_ac_cfg_request_fixed_param;
 
-#define WMI_VDEV_LATENCY_TIDNUM_BIT_POS     0
-#define WMI_VDEV_LATENCY_TIDNUM_NUM_BITS    8
-
-#define WMI_VDEV_LATENCY_GET_TIDNUM(vdev_latency_info) \
-    WMI_GET_BITS(vdev_latency_info, WMI_VDEV_LATENCY_TIDNUM_BIT_POS, WMI_VDEV_LATENCY_TIDNUM_NUM_BITS)
-
-#define WMI_VDEV_LATENCY_SET_TIDNUM(vdev_latency_info,val) \
-    WMI_SET_BITS(vdev_latency_info, WMI_VDEV_LATENCY_TIDNUM_BIT_POS, WMI_VDEV_LATENCY_TIDNUM_NUM_BITS, val)
-
-#define WMI_VDEV_LATENCY_AC_BIT_POS     8
-#define WMI_VDEV_LATENCY_AC_NUM_BITS    2
-
-#define WMI_VDEV_LATENCY_GET_AC(vdev_latency_info) \
-    WMI_GET_BITS(vdev_latency_info, WMI_VDEV_LATENCY_AC_BIT_POS, WMI_VDEV_LATENCY_AC_NUM_BITS)
-
-#define WMI_VDEV_LATENCY_SET_AC(vdev_latency_info,val) \
-    WMI_SET_BITS(vdev_latency_info, WMI_VDEV_LATENCY_AC_BIT_POS, WMI_VDEV_LATENCY_AC_NUM_BITS, val)
-
-#define WMI_VDEV_LATENCY_DL_VALID_BIT_POS     10
-#define WMI_VDEV_LATENCY_DL_VALID_NUM_BITS    1
-
-#define WMI_VDEV_LATENCY_GET_DL_VALID(vdev_latency_info) \
-    WMI_GET_BITS(vdev_latency_info, WMI_VDEV_LATENCY_DL_VALID_BIT_POS, WMI_VDEV_LATENCY_DL_VALID_NUM_BITS)
-
-#define WMI_VDEV_LATENCY_SET_DL_VALID(vdev_latency_info,val) \
-    WMI_SET_BITS(vdev_latency_info, WMI_VDEV_LATENCY_DL_VALID_BIT_POS, WMI_VDEV_LATENCY_DL_VALID_NUM_BITS, val)
-
-#define WMI_VDEV_LATENCY_UL_VALID_BIT_POS     11
-#define WMI_VDEV_LATENCY_UL_VALID_NUM_BITS    1
-
-#define WMI_VDEV_LATENCY_GET_UL_VALID(vdev_latency_info) \
-    WMI_GET_BITS(vdev_latency_info,WMI_VDEV_LATENCY_UL_VALID_BIT_POS, WMI_VDEV_LATENCY_UL_VALID_NUM_BITS)
-
-#define WMI_VDEV_LATENCY_SET_UL_VALID(vdev_latency_info,val) \
-    WMI_SET_BITS(vdev_latency_info, WMI_VDEV_LATENCY_UL_VALID_BIT_POS, WMI_VDEV_LATENCY_UL_VALID_NUM_BITS, val)
-
-typedef struct {
-    /** TLV tag and len; tag equals
-     *  WMITLV_TAG_STRUC_wmi_vdev_latency_info
-     */
-    A_UINT32 tlv_header;
-    /*
-     * Maximum expected average delay between 2 schedules in milliseconds
-     * of given TID type when it has active traffic.
-     * 0x0 is considered as invalid service interval.
-     */
-    A_UINT32 service_interval;
-    /* burst_size:
-     * The number of bytes transmitted (in DL TIDs) / received (in UL ACs)
-     * in service interval.
-     */
-    A_UINT32 burst_size;
-    /* max_latency:
-     * The maximum end to end latency expectation, in milliseconds.
-     * If this value is 0x0, it shall be ignored.
-     */
-    A_UINT32 max_latency;
-    /* max_per:
-     * The maximum PER (as a percent) for the peer-TID, in range 1 - 100.
-     * If this value is 0x0, it shall be ignored.
-     */
-    A_UINT32 max_per;
-    /* min_tput:
-     * The minimum guaranteed throughput to the peer-TID, in Kbps.
-     * If this value is 0x0, it shall be ignored.
-     */
-    A_UINT32 min_tput;
-    /* vdev_latency_info
-     *  Bits  12 - 31   - Reserved (Shall be zero)
-     *  Bit   11        - UL latency config indication.
-     *                    If this bit is set then this latency info will
-     *                    be used when triggering UL traffic.  Until the
-     *                    AC specified in bits 8-9 has transferred at least
-     *                    burst_size amount of UL data within the service
-     *                    period, the AP will continue sending UL triggers
-     *                    when the STA has data of the specified access
-     *                    category ready to transmit.
-     *                    Note that the TID specified in bits 0-7 does not
-     *                    apply to UL; the TID-to-AC mapping applied to DL
-     *                    data that can be adjusted by the TID specified
-     *                    in bits 0-7 and the AC specified in bits 8-9 is
-     *                    distinct from the TID-to-AC mapping applied to
-     *                    UL data.
-     *  Bit   10        - DL latency config indication. If the bit is set
-     *                    then DL TID will use this latency config.
-     *  Bits  8 - 9     - This bit has info on the custom AC of DL TID.
-     *                    Also if bit 11 is set, the AP will apply some
-     *                    of these latency specs (in particular, burst_size)
-     *                    to UL traffic for this AC, by sending UL triggers
-     *                    until the desired amount of data has been received
-     *                    within the service period.
-     *  Bits  0 - 7     - Specifies the TID of interest that corresponds
-     *                    to the AC specified in bits 8-9.  This can be
-     *                    used to adjust the TID-to-AC mapping applied to
-     *                    DL data (if bit 10 is set).
-     */
-    A_UINT32 vdev_latency_info;
-} wmi_vdev_latency_info;
-
-/*
- * Currently wmi_vdev_tid_latency_config_fixed_param will be sent per
- * data tid to map the AC.
- * Also to configure VDEV level latency config to be used by all TIDs
- * based on the mapping.
- * VDEV restart is expected during this command
- */
-
-typedef struct {
-    A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_vdev_tid_latency_config_fixed_param  */
-    A_UINT32 pdev_id;
-    A_UINT32 vdev_id;
-    /*
-     * Following this structure is the TLV:
-     * struct wmi_vdev_latency_info vdev_latency_info[];
-     */
-} wmi_vdev_tid_latency_config_fixed_param;
-
-#define WMI_TID_LATENCY_TIDNUM_BIT_POS     0
-#define WMI_TID_LATENCY_TIDNUM_NUM_BITS    8
-
-#define WMI_TID_LATENCY_GET_TIDNUM(latency_tid_info) \
-    WMI_GET_BITS(latency_tid_info, WMI_TID_LATENCY_TIDNUM_BIT_POS, WMI_TID_LATENCY_TIDNUM_NUM_BITS)
-
-#define WMI_TID_LATENCY_SET_TIDNUM(latency_tid_info,val) \
-    WMI_SET_BITS(latency_tid_info, WMI_TID_LATENCY_TIDNUM_BIT_POS, WMI_TID_LATENCY_TIDNUM_NUM_BITS, val)
-
-#define WMI_TID_LATENCY_AC_BIT_POS     8
-#define WMI_TID_LATENCY_AC_NUM_BITS    2
-
-#define WMI_TID_LATENCY_GET_AC(latency_tid_info) \
-    WMI_GET_BITS(latency_tid_info, WMI_TID_LATENCY_AC_BIT_POS ,  WMI_TID_LATENCY_AC_NUM_BITS)
-
-#define WMI_TID_LATENCY_SET_AC(latency_tid_info,val) \
-    WMI_SET_BITS(latency_tid_info, WMI_TID_LATENCY_AC_BIT_POS ,   WMI_TID_LATENCY_AC_NUM_BITS, val)
-
-#define WMI_TID_LATENCY_DL_ENABLE_BIT_POS     10
-#define WMI_TID_LATENCY_DL_ENABLE_NUM_BITS    1
-
-#define WMI_TID_LATENCY_GET_DL_ENABLE(latency_tid_info) \
-    WMI_GET_BITS(latency_tid_info,WMI_TID_LATENCY_DL_ENABLE_BIT_POS, WMI_TID_LATENCY_DL_ENABLE_NUM_BITS)
-
-#define WMI_TID_LATENCY_SET_DL_ENABLE(latency_tid_info,val) \
-    WMI_SET_BITS(latency_tid_info,WMI_TID_LATENCY_DL_ENABLE_BIT_POS, WMI_TID_LATENCY_DL_ENABLE_NUM_BITS, val)
-
-#define WMI_TID_LATENCY_UL_ENABLE_BIT_POS     11
-#define WMI_TID_LATENCY_UL_ENABLE_NUM_BITS    1
-
-#define WMI_TID_LATENCY_GET_UL_ENABLE(latency_tid_info) \
-    WMI_GET_BITS(latency_tid_info,WMI_TID_LATENCY_UL_ENABLE_BIT_POS, WMI_TID_LATENCY_UL_ENABLE_NUM_BITS)
-
-#define WMI_TID_LATENCY_SET_UL_ENABLE(latency_tid_info,val) \
-    WMI_SET_BITS(latency_tid_info,WMI_TID_LATENCY_UL_ENABLE_BIT_POS, WMI_TID_LATENCY_UL_ENABLE_NUM_BITS, val)
-
-#define WMI_LATENCY_BURST_SIZE_SUM_BIT_POS     12
-#define WMI_LATENCY_BURST_SIZE_SUM_NUM_BITS    2
-
-#define WMI_LATENCY_GET_BURST_SIZE_SUM(latency_tid_info) \
-    WMI_GET_BITS(latency_tid_info, WMI_LATENCY_BURST_SIZE_SUM_BIT_POS, WMI_LATENCY_BURST_SIZE_SUM_NUM_BITS)
-
-#define WMI_LATENCY_SET_BURST_SIZE_SUM(latency_tid_info,val) \
-    WMI_SET_BITS(latency_tid_info, WMI_LATENCY_BURST_SIZE_SUM_BIT_POS, WMI_LATENCY_BURST_SIZE_SUM_NUM_BITS, val)
-
-#define WMI_LATENCY_MSDUQ_ID_BIT_POS     14
-#define WMI_LATENCY_MSDUQ_ID_NUM_BITS    4
-
-#define WMI_LATENCY_GET_MSDUQ_ID(latency_tid_info) \
-    WMI_GET_BITS(latency_tid_info, WMI_LATENCY_MSDUQ_ID_BIT_POS, WMI_LATENCY_MSDUQ_ID_NUM_BITS)
-
-#define WMI_LATENCY_SET_MSDUQ_ID(latency_tid_info,val) \
-    WMI_SET_BITS(latency_tid_info, WMI_LATENCY_MSDUQ_ID_BIT_POS, WMI_LATENCY_MSDUQ_ID_NUM_BITS, val)
-
-typedef struct {
-    /** TLV tag and len; tag equals
-     *  WMITLV_TAG_STRUC_wmi_tid_latency_info
-     */
-    A_UINT32 tlv_header;
-    wmi_mac_addr dest_macaddr; /* Mac address of end client */
-    /*
-     * Maximum expected average delay between 2 schedules in milliseconds
-     * of given TID type when it has active traffic.
-     * 0x0 is considered as invalid service interval.
-     */
-    A_UINT32 service_interval;
-    /*
-     * Cumulative number of bytes are expected to be transmitted or
-     * received in the service interval when this specific Peer-TID
-     * has active traffic.
-     * If cumulative number of bytes is 0x0, it is considered as
-     * invalid burst size.  In that case, firmware would try to transmit
-     * and receive as many bytes as it can for this specific Peer-TID.
-     * This burst size will be added or subtracted from vdev burst size
-     * based on burst size sum bit in latency tid info.
-     * The VDEV burst size will be considered to be 0 when no VDEV latency
-     * command is received.
-     * If host needs to set burst size for a peer then they can use the
-     * peer cmd and set burst size sum bit to 1.
-     */
-    A_UINT32 burst_size_diff;
-    /* max_latency:
-     * The maximum end to end latency expectation, in milliseconds.
-     * If this value is 0x0, it shall be ignored.
-     */
-    A_UINT32 max_latency;
-    /* max_per:
-     * The maximum PER (as a percent) for the peer-TID, in range 1 - 100
-     * If this value is 0x0, it shall be ignored.
-     */
-    A_UINT32 max_per;
-    /* min_tput:
-     * The minimum guaranteed throughput to the peer-TID, in Kbps.
-     * If this value is 0x0, it shall be ignored.
-     */
-    A_UINT32 min_tput;
-    /* latency_tid_info
-     *  Bits 18-31      - Reserved (Shall be zero)
-     *  Bits 14-17      - MSDU queue flow id within the TID for configuring
-     *                    latency info per MSDU flow queue
-     *  Bit  12-13      - burst size sum. Bit to indicate whether to add or
-     *                    subtract burst_size_diff from vdev cmd burst size:
-     *                    1 -> addition
-     *                    2 -> subtraction
-     *  Bit   11        - UL latency config indication.
-     *                    If this bit is set then this latency info will
-     *                    be used when triggering UL traffic.  Until the
-     *                    AC specified in bits 8-9 has transferred at least
-     *                    burst_size amount of UL data within the service
-     *                    period, the AP will continue sending UL triggers
-     *                    when the STA has data of the specified access
-     *                    category ready to transmit.
-     *                    Note that the TID specified in bits 0-7 does not
-     *                    apply to UL; the TID-to-AC mapping applied to DL
-     *                    data that can be adjusted by the TID specified
-     *                    in bits 0-7 and the AC specified in bits 8-9 is
-     *                    distinct from the TID-to-AC mapping applied to
-     *                    UL data.
-     *  Bit   10        - DL latency config indication. If the bit is set
-     *                    then DL TID will use this latency config.
-     *  Bits  8 - 9     - This bit has info on the custom AC of DL TID.
-     *                    Also if bit 11 is set, the AP will apply some
-     *                    of these latency specs (in particular, burst_size)
-     *                    to UL traffic for this AC, by sending UL triggers
-     *                    until the desired amount of data has been received
-     *                    within the service period.
-     *  Bits  0 - 7     - Specifies the TID of interest that corresponds
-     *                    to the AC specified in bits 8-9.  This can be
-     *                    used to adjust the TID-to-AC mapping applied to
-     *                    DL data (if bit 10 is set).
-     */
-    A_UINT32 latency_tid_info;
-} wmi_tid_latency_info;
-
-/*
- * Currently wmi_peer_tid_set_latency_request_fixed_param will be sent
- * per TID per latency configured client.
- * In future this command might come for multiple latency configured
- * clients together.
- * The clients are expected to be associated while receiving this command.
- */
-
-typedef struct {
-    A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_peer_tid_latency_config_fixed_param */
-    A_UINT32 pdev_id;
-    /*
-     * Following this structure is the TLV:
-     * struct wmi_tid_latency_info latency_info[];
-     */
-} wmi_peer_tid_latency_config_fixed_param;
-
 #define WMI_ATF_GROUP_CFG_PEER_BIT_POS     0
 #define WMI_ATF_GROUP_CFG_PEER_NUM_BITS    1
 
@@ -25701,6 +25118,10 @@ typedef enum wmi_coex_config_type {
      * config BTC separate chain mode or shared mode
      */
     WMI_COEX_CONFIG_BTCOEX_SEPARATE_CHAIN_MODE  = 44,
+    /* WMI_COEX_CONFIG_ENABLE_TPUT_SHAPING
+     * enable WLAN throughput shaping while BT scanning
+     */
+    WMI_COEX_CONFIG_ENABLE_TPUT_SHAPING = 45,
 } WMI_COEX_CONFIG_TYPE;
 
 typedef struct {
@@ -27472,6 +26893,9 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_AUDIO_AGGR_SET_GROUP_RATE_CMDID);
         WMI_RETURN_STRING(WMI_AUDIO_AGGR_SET_GROUP_RETRY_CMDID);
         WMI_RETURN_STRING(WMI_CFR_CAPTURE_FILTER_CMDID);
+        WMI_RETURN_STRING(WMI_ATF_SSID_GROUPING_REQUEST_CMDID);
+        WMI_RETURN_STRING(WMI_ATF_GROUP_WMM_AC_CONFIG_REQUEST_CMDID);
+        WMI_RETURN_STRING(WMI_PEER_ATF_EXT_REQUEST_CMDID);
     }
 
     return "Invalid WMI cmd";
@@ -31562,6 +30986,9 @@ typedef struct {
     WMI_GET_BITS(param, WMI_CFR_GROUP_NSS_BIT_POS, WMI_CFR_GROUP_NSS_MASK_NUM_BITS)
 
 typedef struct {
+    /** TLV tag and len; tag equals
+     * WMITLV_TAG_STRUC_wmi_cfr_filter_group_config */
+    A_UINT32 tlv_header;
     /* Filter group number for which the below filters needs to be applied */
     A_UINT32 filter_group_id;
     /* Indicates which of the below filter's value is valid

@@ -43,17 +43,14 @@ enum htt_ppdu_stats_tlv_tag {
     HTT_PPDU_STATS_USR_MPDU_ENQ_BITMAP_64_TLV,    /* htt_ppdu_stats_enq_mpdu_bitmap_64_tlv */
     HTT_PPDU_STATS_USR_MPDU_ENQ_BITMAP_256_TLV,   /* htt_ppdu_stats_enq_mpdu_bitmap_256_tlv */
     HTT_PPDU_STATS_SCH_CMD_STATUS_TLV,            /* htt_ppdu_stats_sch_cmd_tlv_v */
-    HTT_PPDU_STATS_USR_COMPLTN_COMMON_TLV,        /* htt_ppdu_stats_user_compltn_common_tlv */
-    HTT_PPDU_STATS_USR_COMPLTN_BA_BITMAP_64_TLV,  /* htt_ppdu_stats_user_compltn_ba_bitmap_64_tlv */
+    HTT_PPDU_STATS_USR_COMPLTN_COMMON_TLV,        /* htt_ppdu_stats_user_cmpltn_common_tlv */
+    HTT_PPDU_STATS_USR_COMPLTN_BA_BITMAP_64_TLV,  /* htt_ppdu_stats_user_cmpltn_ba_bitmap_64_tlv */
     HTT_PPDU_STATS_USR_COMPLTN_BA_BITMAP_256_TLV, /* htt_ppdu_stats_user_cmpltn_ba_bitmap_256_tlv */
     HTT_PPDU_STATS_USR_COMPLTN_ACK_BA_STATUS_TLV, /* htt_ppdu_stats_user_cmpltn_ack_ba_status_tlv */
     HTT_PPDU_STATS_USR_COMPLTN_FLUSH_TLV,         /* htt_ppdu_stats_flush_tlv */
     HTT_PPDU_STATS_USR_COMMON_ARRAY_TLV,          /* htt_ppdu_stats_usr_common_array_tlv_v */
     HTT_PPDU_STATS_INFO_TLV,                      /* htt_ppdu_stats_info */
     HTT_PPDU_STATS_TX_MGMTCTRL_PAYLOAD_TLV,       /* htt_ppdu_stats_tx_mgmtctrl_payload_tlv */
-    HTT_PPDU_STATS_USERS_INFO_TLV,                /* htt_ppdu_stats_users_info_tlv */
-    HTT_PPDU_STATS_USR_MPDU_ENQ_BITMAP_1024_TLV,  /* htt_ppdu_stats_enq_mpdu_bitmap_1024_tlv */
-    HTT_PPDU_STATS_USR_COMPLTN_BA_BITMAP_1024_TLV,/* htt_ppdu_stats_user_compltn_ba_bitmap_1024_tlv */
 
     /* New TLV's are added above to this line */
     HTT_PPDU_STATS_MAX_TAG,
@@ -852,19 +849,6 @@ typedef struct {
          ((_var) |= ((_val) << HTT_PPDU_STATS_USER_COMMON_TLV_DELAYED_BA_S)); \
      } while (0)
 
-#define HTT_PPDU_STATS_USER_COMMON_TLV_IS_SQNUM_VALID_IN_BUFFER_M     0x00008000
-#define HTT_PPDU_STATS_USER_COMMON_TLV_IS_SQNUM_VALID_IN_BUFFER_S             15
-
-#define HTT_PPDU_STATS_USER_COMMON_TLV_IS_SQNUM_VALID_IN_BUFFER_GET(_var) \
-    (((_var) & HTT_PPDU_STATS_USER_COMMON_TLV_IS_SQNUM_VALID_IN_BUFFER_M) >> \
-    HTT_PPDU_STATS_USER_COMMON_TLV_IS_SQNUM_VALID_IN_BUFFER_S)
-
-#define HTT_PPDU_STATS_USER_COMMON_TLV_IS_SQNUM_VALID_IN_BUFFER_SET(_var, _val) \
-     do { \
-         HTT_CHECK_SET_VAL(HTT_PPDU_STATS_USER_COMMON_TLV_IS_SQNUM_VALID_IN_BUFFER, _val); \
-         ((_var) |= ((_val) << HTT_PPDU_STATS_USER_COMMON_TLV_IS_SQNUM_VALID_IN_BUFFER_S)); \
-     } while (0)
-
 #define HTT_PPDU_STATS_USER_COMMON_TLV_NUM_FRAMES_M     0xffff0000
 #define HTT_PPDU_STATS_USER_COMMON_TLV_NUM_FRAMES_S             16
 
@@ -930,12 +914,12 @@ typedef struct {
     union {
         A_UINT32 bw__mpdus_tried__mcast;
         struct {
-            A_UINT32 mcast:                    1,
-                     mpdus_tried:              9,
-                     bw:                       4,
-                     delayed_ba:               1,
-                     is_sqno_valid_in_buffer:  1,
-                     num_frames:              16;
+            A_UINT32 mcast:              1,
+                     mpdus_tried:        9,
+                     bw:                 4,
+                     delayed_ba:         1,
+                     reserved0:          1,
+                     num_frames:        16;
         };
     };
 
@@ -983,8 +967,6 @@ typedef struct {
 
     /* qdepth bytes : Contains Number of bytes of TIDQ depth */
     A_UINT32 qdepth_bytes;
-    A_UINT32 full_aid : 12,
-             reserved : 20;
 } htt_ppdu_stats_user_common_tlv;
 
 #define HTT_PPDU_STATS_USER_RATE_TLV_TID_NUM_M     0x000000ff

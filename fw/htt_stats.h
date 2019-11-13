@@ -443,6 +443,7 @@ typedef enum {
     HTT_STATS_RX_PDEV_UL_MIMO_USER_STATS_TAG       = 96, /* htt_rx_pdev_ul_mimo_user_stats_tlv */
     HTT_STATS_RX_PDEV_UL_MUMIMO_TRIG_STATS_TAG     = 97, /* htt_rx_pdev_ul_mumimo_trig_stats_tlv */
     HTT_STATS_RX_FSE_STATS_TAG                     = 98, /* htt_rx_fse_stats_tlv */
+    HTT_STATS_PEER_SCHED_STATS_TAG                 = 99, /* htt_peer_sched_stats_tlv */
 
     HTT_STATS_MAX_TAG,
 } htt_tlv_tag_t;
@@ -1410,7 +1411,6 @@ typedef struct {
     /* Peer RX time */
     A_UINT32 peer_rx_active_dur_us_low;
     A_UINT32 peer_rx_active_dur_us_high;
-    A_UINT32 peer_curr_rate_kbps;
 } htt_peer_sched_stats_tlv;
 
 /* config_param0 */
@@ -1771,38 +1771,6 @@ typedef struct _htt_tx_hwq_stats {
         ((_var) |= ((_val) << HTT_TX_SELFGEN_CMN_STATS_MAC_ID_S)); \
     } while (0)
 
-typedef enum {
-    HTT_TXERR_NONE,
-    HTT_TXERR_RESP,    /* response timeout, mismatch,
-                        * BW mismatch, mimo ctrl mismatch,
-                        * CRC error.. */
-    HTT_TXERR_FILT,    /* blocked by tx filtering */
-    HTT_TXERR_FIFO,    /* fifo, misc errors in HW */
-    HTT_TXERR_SWABORT, /* software initialted abort (TX_ABORT) */
-
-    HTT_TXERR_RESERVED1,
-    HTT_TXERR_RESERVED2,
-    HTT_TX_PDEV_STATS_NUM_TX_ERR_STATUS = 7,
-
-    HTT_TXERR_INVALID = 0xff,
-} htt_tx_err_status_t;
-
-
-/* Matching enum for htt_tx_selfgen_sch_tsflag_error_stats */
-typedef enum {
-    HTT_TX_SELFGEN_SCH_TSFLAG_FLUSH_RCVD_ERR,
-    HTT_TX_SELFGEN_SCH_TSFLAG_FILT_SCHED_CMD_ERR,
-    HTT_TX_SELFGEN_SCH_TSFLAG_RESP_MISMATCH_ERR,
-    HTT_TX_SELFGEN_SCH_TSFLAG_RESP_CBF_MIMO_CTRL_MISMATCH_ERR,
-    HTT_TX_SELFGEN_SCH_TSFLAG_RESP_CBF_BW_MISMATCH_ERR,
-    HTT_TX_SELFGEN_SCH_TSFLAG_RETRY_COUNT_FAIL_ERR,
-    HTT_TX_SELFGEN_SCH_TSFLAG_RESP_TOO_LATE_RECEIVED_ERR,
-    HTT_TX_SELFGEN_SCH_TSFLAG_SIFS_STALL_NO_NEXT_CMD_ERR,
-
-    HTT_TX_SELFGEN_NUM_SCH_TSFLAG_ERROR_STATS = 8,
-    HTT_TX_SELFGEN_SCH_TSFLAG_ERROR_STATS_VALID = 8
-} htt_tx_selfgen_sch_tsflag_error_stats;
-
 #define HTT_TX_PDEV_STATS_NUM_AC_MUMIMO_USER_STATS 4
 #define HTT_TX_PDEV_STATS_NUM_AX_MUMIMO_USER_STATS 8
 #define HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS 74
@@ -2002,12 +1970,6 @@ typedef struct {
     A_UINT32 ax_mu_rts_trigger_err;
     A_UINT32 ax_ulmumimo_trigger_err;
     A_UINT32 ax_mu_mimo_brp_err_num_cbf_received[HTT_TX_PDEV_STATS_NUM_AX_MUMIMO_USER_STATS];
-    A_UINT32 ax_su_ndpa_flushed;
-    A_UINT32 ax_su_ndp_flushed;
-    A_UINT32 ax_mu_mimo_ndpa_flushed;
-    A_UINT32 ax_mu_mimo_ndp_flushed;
-    A_UINT32 ax_mu_mimo_brpoll_flushed[HTT_TX_PDEV_STATS_NUM_AX_MUMIMO_USER_STATS - 1];
-    A_UINT32 ax_ul_mumimo_trigger_err[HTT_TX_PDEV_STATS_NUM_AX_MUMIMO_USER_STATS];
 } htt_tx_selfgen_ax_err_stats_tlv;
 
 typedef struct {
@@ -2069,11 +2031,6 @@ typedef struct {
 } htt_tx_pdev_selfgen_stats_t;
 
 /* == TX MU STATS == */
-
-#define HTT_TX_PDEV_STATS_NUM_AC_MUMIMO_USER_STATS 4
-#define HTT_TX_PDEV_STATS_NUM_AX_MUMIMO_USER_STATS 8
-#define HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS 74
-#define HTT_TX_PDEV_STATS_NUM_UL_MUMIMO_USER_STATS 8
 
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
@@ -2252,7 +2209,7 @@ typedef struct {
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
     /* Scheduler command posted per tx_mode */
-    A_UINT32 sched_cmd_posted[1/* length = num tx modes */];
+    A_UINT32 sched_cmd_posted[1]; /* HTT_TX_PDEV_SCHED_TX_MODE_MAX */
 } htt_sched_txq_cmd_posted_tlv_v;
 
 #define HTT_SCHED_TXQ_CMD_REAPED_TLV_SZ(_num_elems) (sizeof(A_UINT32) * (_num_elems))
@@ -2261,7 +2218,7 @@ typedef struct {
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
     /* Scheduler command reaped per tx_mode */
-    A_UINT32 sched_cmd_reaped[1/* length = num tx modes */];
+    A_UINT32 sched_cmd_reaped[1]; /* HTT_TX_PDEV_SCHED_TX_MODE_MAX */
 } htt_sched_txq_cmd_reaped_tlv_v;
 
 #define HTT_SCHED_TXQ_SCHED_ORDER_SU_TLV_SZ(_num_elems) (sizeof(A_UINT32) * (_num_elems))
@@ -4512,64 +4469,6 @@ typedef struct {
          */
         A_UINT32 num_sr_rx_ge_pd_rssi_thr;
     };
-
-    /*
-     * Count of number of times OBSS frames were aborted and non-SRG
-     * opportunities were created. Non-SRG opportunities are created when
-     * incoming OBSS RSSI is lesser than the global configured non-SRG RSSI
-     * threshold and non-SRG OBSS color / non-SRG OBSS BSSID registers
-     * allow non-SRG TX.
-     */
-    A_UINT32 num_non_srg_opportunities;
-    /*
-     * Count of number of times TX PPDU were transmitted using non-SRG
-     * opportunities created. Incoming OBSS frame RSSI is compared with per
-     * PPDU non-SRG RSSI threshold configured in each PPDU. If incoming OBSS
-     * RSSI < non-SRG RSSI threshold configured in each PPDU, then non-SRG
-     * tranmission happens.
-     */
-    A_UINT32 num_non_srg_ppdu_tried;
-    /*
-     * Count of number of times non-SRG based TX transmissions were successful
-     */
-    A_UINT32 num_non_srg_ppdu_success;
-    /*
-     * Count of number of times OBSS frames were aborted and SRG opportunities
-     * were created. Srg opportunities are created when incoming OBSS RSSI
-     * is less than the global configured SRG RSSI threshold and SRC OBSS
-     * color / SRG OBSS BSSID / SRG partial bssid / SRG BSS color bitmap
-     * registers allow SRG TX.
-     */
-    A_UINT32 num_srg_opportunities;
-    /*
-     * Count of number of times TX PPDU were transmitted using SRG
-     * opportunities created.
-     * Incoming OBSS frame RSSI is compared with per PPDU SRG RSSI
-     * threshold configured in each PPDU.
-     * If incoming OBSS RSSI < SRG RSSI threshold configured in each PPDU,
-     * then SRG tranmission happens.
-     */
-    A_UINT32 num_srg_ppdu_tried;
-    /*
-     * Count of number of times SRG based TX transmissions were successful
-     */
-    A_UINT32 num_srg_ppdu_success;
-    /*
-     * Count of number of times PSR opportunities were created by aborting
-     * OBSS UL OFDMA HE-TB PPDU frame. HE-TB ppdu frames are aborted if the
-     * spatial reuse info in the OBSS trigger common field is set to allow PSR
-     * based spatial reuse.
-     */
-    A_UINT32 num_psr_opportunities;
-    /*
-     * Count of number of times TX PPDU were transmitted using PSR
-     * opportunities created.
-     */
-    A_UINT32 num_psr_ppdu_tried;
-    /*
-     * Count of number of times PSR based TX transmissions were successful.
-     */
-    A_UINT32 num_psr_ppdu_success;
 } htt_pdev_obss_pd_stats_tlv;
 
 /* NOTE:
