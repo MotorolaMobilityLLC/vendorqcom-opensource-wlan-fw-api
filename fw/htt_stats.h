@@ -444,6 +444,7 @@ typedef enum {
     HTT_STATS_RX_PDEV_UL_MUMIMO_TRIG_STATS_TAG     = 97, /* htt_rx_pdev_ul_mumimo_trig_stats_tlv */
     HTT_STATS_RX_FSE_STATS_TAG                     = 98, /* htt_rx_fse_stats_tlv */
     HTT_STATS_PEER_SCHED_STATS_TAG                 = 99, /* htt_peer_sched_stats_tlv */
+    HTT_STATS_SCHED_TXQ_SUPERCYCLE_TRIGGER_TAG     = 100, /* htt_sched_txq_supercycle_triggers_tlv_v */
 
     HTT_STATS_MAX_TAG,
 } htt_tlv_tag_t;
@@ -704,10 +705,6 @@ typedef struct {
     A_UINT32 num_mu_peer_blacklisted;
     /* Num of times mu_ofdma seq posted */
     A_UINT32 mu_ofdma_seq_posted;
-    /* Num of times UL MU MIMO seq posted */
-    A_UINT32 ul_mumimo_seq_posted;
-    /* Num of times UL OFDMA seq posted */
-    A_UINT32 ul_ofdma_seq_posted;
 } htt_tx_pdev_stats_cmn_tlv;
 
 #define HTT_TX_PDEV_STATS_URRN_TLV_SZ(_num_elems) (sizeof(A_UINT32) * (_num_elems))
@@ -1260,7 +1257,8 @@ typedef enum {
     HTT_STATS_PREAM_COUNT,
 } HTT_STATS_PREAM_TYPE;
 
-#define HTT_TX_PEER_STATS_NUM_MCS_COUNTERS 12
+#define HTT_TX_PEER_STATS_NUM_MCS_COUNTERS 12 /* 0-11 */
+#define HTT_TX_PEER_STATS_NUM_EXTRA_MCS_COUNTERS 2 /* 12, 13 */
 /* HTT_TX_PEER_STATS_NUM_GI_COUNTERS:
  * GI Index 0:  WHAL_GI_800
  * GI Index 1:  WHAL_GI_400
@@ -1411,6 +1409,7 @@ typedef struct {
     /* Peer RX time */
     A_UINT32 peer_rx_active_dur_us_low;
     A_UINT32 peer_rx_active_dur_us_high;
+    A_UINT32 peer_curr_rate_kbps;
 } htt_peer_sched_stats_tlv;
 
 /* config_param0 */
@@ -2209,7 +2208,7 @@ typedef struct {
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
     /* Scheduler command posted per tx_mode */
-    A_UINT32 sched_cmd_posted[1]; /* HTT_TX_PDEV_SCHED_TX_MODE_MAX */
+    A_UINT32 sched_cmd_posted[1/* length = num tx modes */];
 } htt_sched_txq_cmd_posted_tlv_v;
 
 #define HTT_SCHED_TXQ_CMD_REAPED_TLV_SZ(_num_elems) (sizeof(A_UINT32) * (_num_elems))
@@ -2218,7 +2217,7 @@ typedef struct {
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
     /* Scheduler command reaped per tx_mode */
-    A_UINT32 sched_cmd_reaped[1]; /* HTT_TX_PDEV_SCHED_TX_MODE_MAX */
+    A_UINT32 sched_cmd_reaped[1/* length = num tx modes */];
 } htt_sched_txq_cmd_reaped_tlv_v;
 
 #define HTT_SCHED_TXQ_SCHED_ORDER_SU_TLV_SZ(_num_elems) (sizeof(A_UINT32) * (_num_elems))
@@ -3483,7 +3482,6 @@ typedef struct {
 #define HTT_RX_PDEV_STATS_NUM_LEGACY_OFDM_STATS 8
 #define HTT_RX_PDEV_STATS_NUM_MCS_COUNTERS 12 /* 0-11 */
 #define HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS 2 /* 12, 13 */
-#define HTT_RX_PDEV_STATS_NUM_MCS_COUNTERS_EXT 14 /* 0-13 */
 #define HTT_RX_PDEV_STATS_NUM_GI_COUNTERS 4
 #define HTT_RX_PDEV_STATS_NUM_DCM_COUNTERS 5
 #define HTT_RX_PDEV_STATS_NUM_BW_COUNTERS 4
@@ -3617,13 +3615,15 @@ typedef struct {
     A_UINT32 rx_ulofdma_non_data_nusers[HTT_RX_PDEV_MAX_OFDMA_NUM_USER];
     A_UINT32 rx_ulofdma_data_nusers[HTT_RX_PDEV_MAX_OFDMA_NUM_USER];
 
-    /*
-     * NOTE - this TLV is already large enough that it causes the HTT message
-     * carrying it to be nearly at the message size limit that applies to
-     * many targets/hosts.
-     * No further fields should be added to this TLV without very careful
-     * review to ensure the size increase is acceptable.
-     */
+    /* Stats for MCS 12/13 */
+    A_UINT32 rx_mcs_ext[HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
+    A_UINT32 rx_stbc_ext[HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
+    A_UINT32 rx_gi_ext[HTT_RX_PDEV_STATS_NUM_GI_COUNTERS][HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
+    A_UINT32 ul_ofdma_rx_mcs_ext[HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
+    A_UINT32 ul_ofdma_rx_gi_ext[HTT_TX_PDEV_STATS_NUM_GI_COUNTERS][HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
+    A_UINT32 rx_11ax_su_txbf_mcs_ext[HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
+    A_UINT32 rx_11ax_mu_txbf_mcs_ext[HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
+    A_UINT32 rx_11ax_dl_ofdma_mcs_ext[HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
 } htt_rx_pdev_rate_stats_tlv;
 
 /* STATS_TYPE : HTT_DBG_EXT_STATS_PDEV_RX_RATE
@@ -3676,6 +3676,9 @@ typedef struct {
     A_UINT32 rx_ulofdma_data_ru_size_ppdu[HTT_RX_PDEV_STATS_NUM_RU_SIZE_160MHZ_CNTRS];      /* ppdu level */
     A_UINT32 rx_ulofdma_non_data_ru_size_ppdu[HTT_RX_PDEV_STATS_NUM_RU_SIZE_160MHZ_CNTRS];  /* ppdu level */
 
+    /* Stats for MCS 12/13 */
+    A_UINT32 ul_ofdma_rx_mcs_ext[HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
+    A_UINT32 ul_ofdma_rx_gi_ext[HTT_RX_PDEV_STATS_NUM_GI_COUNTERS][HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
 } htt_rx_pdev_ul_trigger_stats_tlv;
 
 /* STATS_TYPE : HTT_DBG_EXT_STATS_PDEV_UL_TRIG_STATS
@@ -3732,6 +3735,10 @@ typedef struct {
     A_UINT32 ul_mumimo_rx_bw[HTT_RX_PDEV_STATS_NUM_BW_COUNTERS];
     A_UINT32 ul_mumimo_rx_stbc;
     A_UINT32 ul_mumimo_rx_ldpc;
+
+    /* Stats for MCS 12/13 */
+    A_UINT32 ul_mumimo_rx_mcs_ext[HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
+    A_UINT32 ul_mumimo_rx_gi_ext[HTT_RX_PDEV_STATS_NUM_GI_COUNTERS][HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
 } htt_rx_pdev_ul_mumimo_trig_stats_tlv;
 
 /* STATS_TYPE : HTT_DBG_EXT_STATS_PDEV_UL_MUMIMO_TRIG_STATS

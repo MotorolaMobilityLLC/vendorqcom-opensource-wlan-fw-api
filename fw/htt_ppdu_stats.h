@@ -514,87 +514,6 @@ typedef enum HTT_PPDU_STATS_SEQ_TYPE HTT_PPDU_STATS_SEQ_TYPE;
          ((_var) |= ((_val) << HTT_PPDU_STATS_COMMON_TLV_PHY_PPDU_TX_TIME_US_S)); \
      } while (0)
 
-#define HTT_PPDU_STATS_COMMON_TLV_NUM_UL_EXPECTED_USERS_M     0x00ff0000
-#define HTT_PPDU_STATS_COMMON_TLV_NUM_UL_EXPECTED_USERS_S             16
-
-#define HTT_PPDU_STATS_COMMON_TLV_NUM_UL_EXPECTED_USERS_GET(_var) \
-    (((_var) & HTT_PPDU_STATS_COMMON_TLV_NUM_UL_EXPECTED_USERS_M) >> \
-    HTT_PPDU_STATS_COMMON_TLV_NUM_UL_EXPECTED_USERS_S)
-
-#define HTT_PPDU_STATS_COMMON_TLV_NUM_UL_EXPECTED_USERS_SET(_var, _val) \
-   do { \
-      HTT_CHECK_SET_VAL(HTT_PPDU_STATS_COMMON_TLV_NUM_UL_EXPECTED_USERS, _val); \
-      ((_var) |= ((_val) << HTT_PPDU_STATS_COMMON_TLV_NUM_UL_EXPECTED_USERS_S)); \
-   } while(0);
-
-#define HTT_PPDU_STATS_COMMON_TLV_BEAM_CHANGE_M    0x01000000
-#define HTT_PPDU_STATS_COMMON_TLV_BEAM_CHANGE_S            24
-
-#define HTT_PPDU_STATS_COMMON_TLV_BEAM_CHANGE_GET(_var) \
-    (((_var) & HTT_PPDU_STATS_COMMON_TLV_BEAM_CHANGE_M) >> \
-    HTT_PPDU_STATS_COMMON_TLV_BEAM_CHANGE_S)
-
-#define HTT_PPDU_STATS_COMMON_TLV_BEAM_CHANGE_SET(_var, _val) \
-     do { \
-         HTT_CHECK_SET_VAL(HTT_PPDU_STATS_COMMON_TLV_BEAM_CHANGE, _val); \
-         ((_var) |= ((_val) << HTT_PPDU_STATS_COMMON_TLV_BEAM_CHANGE_S)); \
-     } while (0)
-
-#define HTT_PPDU_STATS_COMMON_TLV_DOPPLER_INDICATION_M    0x02000000
-#define HTT_PPDU_STATS_COMMON_TLV_DOPPLER_INDICATION_S            25
-
-#define HTT_PPDU_STATS_COMMON_TLV_DOPPLER_INDICATION_GET(_var) \
-    (((_var) & HTT_PPDU_STATS_COMMON_TLV_DOPPLER_INDICATION_M) >> \
-    HTT_PPDU_STATS_COMMON_TLV_DOPPLER_INDICATION_S)
-
-#define HTT_PPDU_STATS_COMMON_TLV_DOPPLER_INDICATION_SET(_var, _val) \
-    do { \
-        HTT_CHECK_SET_VAL(HTT_PPDU_STATS_COMMON_TLV_DOPPLER_INDICATION, _val); \
-        ((_var) |= ((_val) << HTT_PPDU_STATS_COMMON_TLV_DOPPLER_INDICATION_S)); \
-    } while (0)
-
-enum HTT_PPDU_STATS_SPATIAL_REUSE {
-    HTT_SRP_DISALLOW                        =  0,
-    /* values 1-12 are reserved */
-    HTT_SR_RESTRICTED                       = 13,
-    HTT_SR_DELAY                            = 14,
-    HTT_SRP_AND_NON_SRG_OBSS_PD_PROHIBITED  = 15,
-};
-typedef enum HTT_PPDU_STATS_SPATIAL_REUSE HTT_PPDU_STATS_SPATIAL_REUSE;
-
-#define HTT_PPDU_STATS_COMMON_TLV_SPATIAL_REUSE_M    0x3c000000
-#define HTT_PPDU_STATS_COMMON_TLV_SPATIAL_REUSE_S            26
-
-#define HTT_PPDU_STATS_COMMON_TLV_SPATIAL_REUSE_GET(_var) \
-    (((_var) & HTT_PPDU_STATS_COMMON_TLV_SPATIAL_REUSE_M) >> \
-    HTT_PPDU_STATS_COMMON_TLV_SPATIAL_REUSE_S)
-
-#define HTT_PPDU_STATS_COMMON_TLV_SPATIAL_REUSE_SET(_var, _val) \
-    do { \
-        HTT_CHECK_SET_VAL(HTT_PPDU_STATS_COMMON_TLV_SPATIAL_REUSE, _val); \
-        ((_var) |= ((_val) << HTT_PPDU_STATS_COMMON_TLV_SPATIAL_REUSE_S)); \
-    } while (0)
-
-#define HTT_PPDU_STATS_COMMON_TLV_BSS_COLOR_ID_M     0x0000003f
-#define HTT_PPDU_STATS_COMMON_TLV_BSS_COLOR_ID_S              0
-
-#define HTT_PPDU_STATS_COMMON_TLV_BSS_COLOR_ID_GET(_var) \
-    (((_var) & HTT_PPDU_STATS_COMMON_TLV_BSS_COLOR_ID_M) >> \
-    HTT_PPDU_STATS_COMMON_TLV_BSS_COLOR_ID_S)
-
-#define HTT_PPDU_STATS_COMMON_TLV_BSS_COLOR_ID_SET(_var, _val) \
-     do { \
-            HTT_CHECK_SET_VAL(HTT_PPDU_STATS_COMMON_TLV_BSS_COLOR_ID, _val); \
-            ((_var) |= ((_val) << HTT_PPDU_STATS_COMMON_TLV_BSS_COLOR_ID_S)); \
-    } while (0)
-
-#define HTT_PPDU_STATS_COMMON_TRIG_COOKIE_M    0x0000ffff
-#define HTT_PPDU_STATS_COMMON_TRIG_COOKIE_S    0
-
-#define HTT_PPDU_STATS_COMMON_TRIG_COOKIE_GET(_val) \
-        (((_val) & HTT_PPDU_STATS_COMMON_TRIG_COOKIE_M) >> \
-         HTT_PPDU_STATS_COMMON_TRIG_COOKIE_S)
-
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
 
@@ -685,77 +604,22 @@ typedef struct {
      * The phy_ppdu_tx_time_us reports the time it took to transmit
      * a PPDU by itself
      * BIT [15 :  0] - phy_ppdu_tx_time_us reports the time it took to
-     *                 transmit by itself (not including response time)
-     * BIT [23 : 16] - num_ul_expected_users reports the number of users
-     *                 that are expected to respond to this transmission
-     * BIT [24 : 24] - beam_change reports the beam forming pattern
-     *                 between non-HE and HE portion.
-     *                 If we apply TxBF starting from legacy preamble,
-     *                 then beam_change = 0.
-     *                 If we apply TxBF only starting from HE portion,
-     *                 then beam_change = 1.
-     * BIT [25 : 25] - doppler_indication
-     * BIT [29 : 26] - spatial_reuse for HE_SU,HE_MU and HE_EXT_SU format PPDU
-     *                 HTT_PPDU_STATS_SPATIAL_REUSE
-     * BIT [31 : 30] - reserved
+     #                 transmit by itself (not including response time)
+     * BIT [31 : 16] - reserved
      */
     union {
         A_UINT32 reserved__ppdu_tx_time_us;
-        A_UINT32 reserved__num_ul_expected_users__ppdu_tx_time_us;
-        A_UINT32 reserved__spatial_reuse__doppler_indication__beam_change__num_ul_expected_users__ppdu_tx_time_us;
         struct {
             A_UINT32 phy_ppdu_tx_time_us:   16,
-                     num_ul_expected_users:  8,
-                     beam_change:            1,
-                     doppler_indication:     1,
-                     spatial_reuse:          4,
-                     reserved1:              2;
+                     reserved1:             16;
         };
     };
-
     /* ppdu_start_tstmp_u32_us:
      * Upper 32 bits of the PPDU start timestamp.
      * This field can be combined with the ppdu_start_tstmp_us field's
      * lower 32 bits of the PPDU start timestamp to form a 64-bit timestamp.
      */
     A_UINT32 ppdu_start_tstmp_u32_us;
-
-    /*
-     * BIT [5 : 0] - bss_color_id indicates he_bss_color which is an identifier
-     *               of the BSS and is used to assist a receiving STA in
-     *               identifying the BSS from which a PPDU originates.
-     *               Value in the range 0 to 63
-     * BIT [6 : 6] - PPDU transmitted using Non-SRG opportunity
-     * BIT [7 : 7] - PPDU transmitted using SRG opportunity
-     * BIT [15: 8] - RSSI of the aborted OBSS frame (in dB w.r.t. noise floor)
-     *               by which SRG/Non-SRG based spatial reuse opportunity
-     *               was created.
-     * BIT [16:16] - PPDU transmitted using PSR opportunity
-     * BIT [31:17] - reserved
-     */
-    union {
-        A_UINT32 reserved__psr_tx__aborted_obss_rssi__srg_tx__non_srg_tx___bss_color_id;
-        A_UINT32 reserved__aborted_obss_rssi__srg_tx__non_srg_tx___bss_color_id;
-        A_UINT32 reserved__bss_color_id;
-        struct {
-            A_UINT32 bss_color_id:       6,
-                     non_srg_tx:         1,
-                     srg_tx:             1,
-                     aborted_obss_rssi:  8,
-                     psr_tx:             1,
-                     reserved2:         15;
-        };
-    };
-
-    /* Note: This is for tracking a UL OFDMA packet */
-    union {
-        A_UINT32 trig_cookie_info;
-        struct {
-            A_UINT32 trig_cookie: 16,
-                     trig_cookie_rsvd: 15,
-                     trig_cookie_valid: 1;
-        };
-    };
 } htt_ppdu_stats_common_tlv;
 
 #define HTT_PPDU_STATS_USER_COMMON_TLV_TID_NUM_M     0x000000ff
