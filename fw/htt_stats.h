@@ -320,6 +320,25 @@ enum htt_dbg_ext_stats_type {
      */
     HTT_DBG_EXT_STATS_FSE_RX = 28,
 
+    /* HTT_DBG_EXT_PEER_CTRL_PATH_TXRX_STATS
+     * PARAMS:
+     *   - config_param0: [Bit0] : [1] for mac_addr based request
+     *   - config_param1: [Bit31 : Bit0] mac_addr31to0
+     *   - config_param2: [Bit15 : Bit0] mac_addr47to32
+     * RESP MSG:
+     *   - htt_ctrl_path_txrx_stats_t
+     */
+    HTT_DBG_EXT_PEER_CTRL_PATH_TXRX_STATS = 29,
+
+    /* HTT_DBG_EXT_STATS_PDEV_RX_RATE_EXT
+     * PARAMS:
+     *   - No Params
+     * RESP MSG:
+     *   - htt_rx_pdev_rate_ext_stats_t
+     */
+    HTT_DBG_EXT_STATS_PDEV_RX_RATE_EXT    = 30,
+
+
     /* keep this last */
     HTT_DBG_NUM_EXT_STATS = 256,
 };
@@ -445,6 +464,9 @@ typedef enum {
     HTT_STATS_RX_FSE_STATS_TAG                     = 98, /* htt_rx_fse_stats_tlv */
     HTT_STATS_PEER_SCHED_STATS_TAG                 = 99, /* htt_peer_sched_stats_tlv */
     HTT_STATS_SCHED_TXQ_SUPERCYCLE_TRIGGER_TAG     = 100, /* htt_sched_txq_supercycle_triggers_tlv_v */
+    HTT_STATS_PEER_CTRL_PATH_TXRX_STATS_TAG        = 101, /* htt_peer_ctrl_path_txrx_stats_tlv */
+    HTT_STATS_PDEV_CTRL_PATH_TX_STATS_TAG          = 102, /* htt_pdev_ctrl_path_tx_stats_tlv */
+    HTT_STATS_RX_PDEV_RATE_EXT_STATS_TAG           = 103, /* htt_rx_pdev_rate_ext_stats_tlv */
 
     HTT_STATS_MAX_TAG,
 } htt_tlv_tag_t;
@@ -3610,6 +3632,26 @@ typedef struct {
 typedef struct {
     htt_rx_pdev_rate_stats_tlv rate_tlv;
 } htt_rx_pdev_rate_stats_t;
+
+typedef struct {
+    htt_tlv_hdr_t tlv_hdr;
+    A_UINT8  rssi_chain_ext[HTT_RX_PDEV_STATS_NUM_SPATIAL_STREAMS][HTT_RX_PDEV_STATS_NUM_BW_EXT_COUNTERS]; /* units = dB above noise floor */
+    A_INT8   rx_per_chain_rssi_ext_in_dbm[HTT_RX_PDEV_STATS_NUM_SPATIAL_STREAMS][HTT_RX_PDEV_STATS_NUM_BW_EXT_COUNTERS];
+    A_INT32  rssi_mcast_in_dbm; /* rx mcast signal strength value in dBm unit */
+    A_INT32  rssi_mgmt_in_dbm; /* rx mgmt packet signal Strength value in dBm unit */
+} htt_rx_pdev_rate_ext_stats_tlv;
+
+/* STATS_TYPE : HTT_DBG_EXT_STATS_PDEV_RX_RATE_EXT
+ * TLV_TAGS:
+ *      - HTT_STATS_RX_PDEV_RATE_EXT_STATS_TAG
+ */
+/* NOTE:
+ * This structure is for documentation, and cannot be safely used directly.
+ * Instead, use the constituent TLV structures to fill/parse.
+ */
+typedef struct {
+    htt_rx_pdev_rate_ext_stats_tlv rate_tlv;
+} htt_rx_pdev_rate_ext_stats_t;
 
 #define HTT_STATS_CMN_MAC_ID_M 0x000000ff
 #define HTT_STATS_CMN_MAC_ID_S 0
