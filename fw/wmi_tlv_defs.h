@@ -1042,6 +1042,9 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_audio_sync_q_master_slave_offset_event_fixed_param,
     WMITLV_TAG_STRUC_wmi_audio_sync_q_master_slave_times,
     WMITLV_TAG_STRUC_wmi_roam_frame_info_tlv_param,
+    WMITLV_TAG_STRUC_wmi_vdev_set_pcl_cmd_fixed_param,
+    WMITLV_TAG_STRUC_wmi_peer_create_conf_event_fixed_param,
+    WMITLV_TAG_STRUC_wmi_pdev_multiple_vdev_restart_resp_event_fixed_param,
 } WMITLV_TAG_ID;
 
 /*
@@ -1469,6 +1472,7 @@ typedef enum {
     OP(WMI_AUDIO_AGGR_SET_GROUP_PROBE_CMDID) \
     OP(WMI_VDEV_AUDIO_SYNC_TRIGGER_CMDID) \
     OP(WMI_VDEV_AUDIO_SYNC_QTIMER_CMDID) \
+    OP(WMI_VDEV_SET_PCL_CMDID) \
     /* add new CMD_LIST elements above this line */
 
 
@@ -1710,6 +1714,8 @@ typedef enum {
     OP(WMI_ROAM_STATS_EVENTID) \
     OP(WMI_VDEV_AUDIO_SYNC_START_STOP_EVENTID) \
     OP(WMI_VDEV_AUDIO_SYNC_Q_MASTER_SLAVE_OFFSET_EVENTID) \
+    OP(WMI_PEER_CREATE_CONF_EVENTID) \
+    OP(WMI_PDEV_MULTIPLE_VDEV_RESTART_RESP_EVENTID) \
     /* add new EVT_LIST elements above this line */
 
 
@@ -3993,9 +3999,7 @@ WMITLV_CREATE_PARAM_STRUC(WMI_HW_DATA_FILTER_CMDID);
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_multiple_vdev_restart_request_cmd_fixed_param, wmi_pdev_multiple_vdev_restart_request_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, vdev_ids, WMITLV_SIZE_VAR) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_channel, wmi_channel, chan, WMITLV_SIZE_FIX) \
-    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, phymode_list, WMITLV_SIZE_VAR) \
-    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, preferred_tx_stream_list, WMITLV_SIZE_VAR) \
-    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, preferred_rx_stream_list, WMITLV_SIZE_VAR)
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, phymode_list, WMITLV_SIZE_VAR)
 WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_MULTIPLE_VDEV_RESTART_REQUEST_CMDID);
 
 #define WMITLV_TABLE_WMI_PDEV_UPDATE_PKT_ROUTING_CMDID(id,op,buf,len) \
@@ -4304,6 +4308,12 @@ WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_AUDIO_SYNC_TRIGGER_CMDID);
 #define WMITLV_TABLE_WMI_VDEV_AUDIO_SYNC_QTIMER_CMDID(id,op,buf,len) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_audio_sync_qtimer_cmd_fixed_param, wmi_audio_sync_qtimer_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
 WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_AUDIO_SYNC_QTIMER_CMDID);
+
+/* Preferred channel list for vdev */
+#define WMITLV_TABLE_WMI_VDEV_SET_PCL_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vdev_set_pcl_cmd_fixed_param, wmi_vdev_set_pcl_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, channel_weight, WMITLV_SIZE_VAR)
+WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_SET_PCL_CMDID);
 
 
 /************************** TLV definitions of WMI events *******************************/
@@ -5826,6 +5836,12 @@ WMITLV_CREATE_PARAM_STRUC(WMI_GET_ELNA_BYPASS_EVENTID);
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_get_channel_ani_event_fixed_param, wmi_get_channel_ani_event_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_channel_ani_info_tlv_param, ani_info, WMITLV_SIZE_VAR)
 WMITLV_CREATE_PARAM_STRUC(WMI_GET_CHANNEL_ANI_EVENTID);
+
+/* Multiple Vdev Restart response event */
+#define WMITLV_TABLE_WMI_PDEV_MULTIPLE_VDEV_RESTART_RESP_EVENTID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_multiple_vdev_restart_resp_event_fixed_param, wmi_pdev_multiple_vdev_restart_resp_event_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, vdev_ids_bitmap, WMITLV_SIZE_VAR)
+WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_MULTIPLE_VDEV_RESTART_RESP_EVENTID);
 
 #ifdef __cplusplus
 }

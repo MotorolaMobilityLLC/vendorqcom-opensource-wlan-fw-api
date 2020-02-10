@@ -522,6 +522,8 @@ typedef enum {
     WMI_VDEV_AUDIO_SYNC_TRIGGER_CMDID,
     /** Gives Qtimer value  to FW  */
     WMI_VDEV_AUDIO_SYNC_QTIMER_CMDID,
+    /** Preferred channel list for each vdev */
+    WMI_VDEV_SET_PCL_CMDID,
 
     /* peer specific commands */
 
@@ -1455,10 +1457,6 @@ typedef enum {
      * MULTIPLE_VDEV_RESTART_REQUEST
      */
     WMI_PDEV_MULTIPLE_VDEV_RESTART_RESP_EVENTID,
-
-    /** WMI event in response to TPC STATS command */
-    WMI_PDEV_GET_TPC_STATS_EVENTID,
-
 
     /* VDEV specific events */
     /** VDEV started event in response to VDEV_START request */
@@ -25461,6 +25459,21 @@ typedef struct {
     A_UINT32 qslave_u32;
 } wmi_audio_sync_q_master_slave_times;
 
+/** Set Preferred Channel List  **/
+typedef struct {
+    A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_vdev_set_pcl_cmd_fixed_param */
+    /** vdev_id */
+    A_UINT32 vdev_id;
+/**
+ * TLV (tag length value) parameters follow the wmi_vdev_set_pcl_cmd
+ * structure. The TLV's are:
+ *
+ *     A_UINT32 channel_weight[];
+ *         values definied by enum 'wmi_pcl_chan_weight'
+ *         channel order & size will be as per the list provided in WMI_SCAN_CHAN_LIST_CMDID
+ **/
+} wmi_vdev_set_pcl_cmd_fixed_param;
+
 typedef enum {
     WLAN_2G_CAPABILITY = 0x1,
     WLAN_5G_CAPABILITY = 0x2,
@@ -27255,10 +27268,6 @@ typedef struct {
      *    each phymode value stored in bits 5:0 of the A_UINT32.
      *    Use the WMI_MULTIPLE_VDEV_RESTART_FLAG_GET/SET_PHYMODE macros
      *    to access the phymode value from within each A_UINT32 element.
-     * A_UINT32 preferred_tx_streams[]; <-- Array of preferred_tx_streams
-     *    with vdev ID as index.
-     * A_UINT32 preferred_rx_streams[]; <-- Array of preferred_rx_streams
-     *    with vdev ID as index.
      */
 } wmi_pdev_multiple_vdev_restart_request_cmd_fixed_param;
 
@@ -31123,6 +31132,19 @@ typedef struct {
     A_UINT32 vdev_id;
 } wmi_peer_config_vlan_cmd_fixed_param;
 
+typedef struct {
+    /** TLV tag and len; tag equals
+    * WMITLV_TAG_STRUC_wmi_pdev_multiple_vdev_restart_resp_event_fixed_param */
+    A_UINT32 tlv_header;
+    A_UINT32 pdev_id; /* ID of the pdev this response belongs to */
+    A_UINT32 requestor_id;
+    /** Return status. As per WMI_VDEV_START_RESPONSE_XXXXX */
+    A_UINT32 status;
+
+    /* The TLVs follows this structure:
+     * A_UINT32 vdev_ids_bitmap[]; <--- Array of VDEV id bitmap.
+     */
+} wmi_pdev_multiple_vdev_restart_resp_event_fixed_param;
 
 
 /* ADD NEW DEFS HERE */

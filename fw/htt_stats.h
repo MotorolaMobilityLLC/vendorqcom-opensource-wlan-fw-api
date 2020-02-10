@@ -338,6 +338,13 @@ enum htt_dbg_ext_stats_type {
      */
     HTT_DBG_EXT_STATS_PDEV_RX_RATE_EXT    = 30,
 
+    /* HTT_DBG_EXT_STATS_PDEV_TX_RATE_TXBF
+     * PARAMS:
+     *   - No Params
+     * RESP MSG:
+     *   - htt_tx_pdev_rate_txbf_stats_t
+     */
+    HTT_DBG_EXT_STATS_PDEV_TX_RATE_TXBF   = 31,
 
     /* keep this last */
     HTT_DBG_NUM_EXT_STATS = 256,
@@ -467,6 +474,11 @@ typedef enum {
     HTT_STATS_PEER_CTRL_PATH_TXRX_STATS_TAG        = 101, /* htt_peer_ctrl_path_txrx_stats_tlv */
     HTT_STATS_PDEV_CTRL_PATH_TX_STATS_TAG          = 102, /* htt_pdev_ctrl_path_tx_stats_tlv */
     HTT_STATS_RX_PDEV_RATE_EXT_STATS_TAG           = 103, /* htt_rx_pdev_rate_ext_stats_tlv */
+    HTT_STATS_TX_PDEV_DL_MU_MIMO_STATS_TAG         = 104, /* htt_tx_pdev_dl_mu_mimo_sch_stats_tlv */
+    HTT_STATS_TX_PDEV_UL_MU_MIMO_STATS_TAG         = 105, /* htt_tx_pdev_ul_mu_mimo_sch_stats_tlv */
+    HTT_STATS_TX_PDEV_DL_MU_OFDMA_STATS_TAG        = 106, /* htt_tx_pdev_dl_mu_ofdma_sch_stats_tlv */
+    HTT_STATS_TX_PDEV_UL_MU_OFDMA_STATS_TAG        = 107, /* htt_tx_pdev_ul_mu_ofdma_sch_stats_tlv */
+    HTT_STATS_PDEV_TX_RATE_TXBF_STATS_TAG          = 108, /* htt_tx_peer_rate_txbf_stats_tlv */
 
     HTT_STATS_MAX_TAG,
 } htt_tlv_tag_t;
@@ -1863,64 +1875,7 @@ typedef struct {
     A_UINT32 ax_mu_mimo_ndpa_queued;
     A_UINT32 ax_mu_mimo_ndp_queued;
     A_UINT32 ax_mu_mimo_brpoll_queued[HTT_TX_PDEV_STATS_NUM_AX_MUMIMO_USER_STATS - 1];
-    A_UINT32 ax_ul_mumimo_trigger[HTT_TX_PDEV_STATS_NUM_AX_MUMIMO_USER_STATS];
 } htt_tx_selfgen_ax_stats_tlv;
-
-typedef struct {
-    htt_tlv_hdr_t tlv_hdr;
-
-    A_UINT32 ax_ofdma_ndpa_queued[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_ndpa_tried[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_ndpa_flushed[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_ndpa_err[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-} htt_txbf_ofdma_ndpa_stats_tlv;
-
-typedef struct {
-    htt_tlv_hdr_t tlv_hdr;
-
-    A_UINT32 ax_ofdma_ndp_queued[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_ndp_tried[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_ndp_flushed[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_ndp_err[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-} htt_txbf_ofdma_ndp_stats_tlv;
-
-typedef struct {
-    htt_tlv_hdr_t tlv_hdr;
-
-    A_UINT32 ax_ofdma_brpoll_queued[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_brpoll_tried[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_brpoll_flushed[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_brp_err[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_brp_err_num_cbf_rcvd[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS+1];
-} htt_txbf_ofdma_brp_stats_tlv;
-
-typedef struct {
-    htt_tlv_hdr_t tlv_hdr;
-
-    A_UINT32 ax_ofdma_num_ppdu_steer[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_num_ppdu_ol[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_num_usrs_prefetch[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_num_usrs_sound[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-    A_UINT32 ax_ofdma_num_usrs_force_sound[HTT_TX_PDEV_STATS_NUM_OFDMA_USER_STATS];
-} htt_txbf_ofdma_steer_stats_tlv;
-
-/* STATS_TYPE : HTT_DBG_EXT_STATS_TXBF_OFDMA
- * TLV_TAGS:
- *      - HTT_STATS_TXBF_OFDMA_NDPA_STATS_TAG
- *      - HTT_STATS_TXBF_OFDMA_NDP_STATS_TAG
- *      - HTT_STATS_TXBF_OFDMA_BRP_STATS_TAG
- *      - HTT_STATS_TXBF_OFDMA_STEER_STATS_TAG
- */
-/* NOTE:
- * This structure is for documentation, and cannot be safely used directly.
- * Instead, use the constituent TLV structures to fill/parse.
- */
-typedef struct {
-    htt_txbf_ofdma_ndpa_stats_tlv ofdma_ndpa_tlv;
-    htt_txbf_ofdma_ndp_stats_tlv ofdma_ndp_tlv;
-    htt_txbf_ofdma_brp_stats_tlv ofdma_brp_tlv;
-    htt_txbf_ofdma_steer_stats_tlv ofdma_steer_tlv;
-} htt_tx_pdev_txbf_ofdma_stats_t;
 
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
@@ -1977,6 +1932,11 @@ typedef struct {
     A_UINT32 ax_mu_rts_trigger_err;
     A_UINT32 ax_ulmumimo_trigger_err;
     A_UINT32 ax_mu_mimo_brp_err_num_cbf_received[HTT_TX_PDEV_STATS_NUM_AX_MUMIMO_USER_STATS];
+    A_UINT32 ax_su_ndpa_flushed;
+    A_UINT32 ax_su_ndp_flushed;
+    A_UINT32 ax_mu_mimo_ndpa_flushed;
+    A_UINT32 ax_mu_mimo_ndp_flushed;
+    A_UINT32 ax_mu_mimo_brpoll_flushed[HTT_TX_PDEV_STATS_NUM_AX_MUMIMO_USER_STATS - 1];
 } htt_tx_selfgen_ax_err_stats_tlv;
 
 typedef struct {
@@ -2071,6 +2031,8 @@ typedef struct {
      * for (i+1) users
      */
     A_UINT32 ax_ul_mumimo_brp_sch_nusers[HTT_TX_PDEV_STATS_NUM_UL_MUMIMO_USER_STATS];
+    A_UINT32 ac_mu_mimo_sch_posted_per_grp_sz[HTT_TX_PDEV_STATS_NUM_AC_MUMIMO_USER_STATS];
+    A_UINT32 ax_mu_mimo_sch_posted_per_grp_sz[HTT_TX_PDEV_STATS_NUM_AX_MUMIMO_USER_STATS];
 } htt_tx_pdev_mu_mimo_sch_stats_tlv;
 
 typedef struct {
@@ -4739,5 +4701,29 @@ typedef struct {
     htt_rx_fse_stats_tlv rx_fse_stats;
 } htt_rx_fse_stats_t;
 
+#define HTT_TX_TXBF_RATE_STATS_NUM_MCS_COUNTERS 14
+#define HTT_TX_TXBF_RATE_STATS_NUM_BW_COUNTERS 5 /* 20, 40, 80, 160, 320 */
+
+typedef struct {
+    htt_tlv_hdr_t tlv_hdr;
+    /* Counters to track TxBF and OL separately */
+    A_UINT32 tx_su_txbf_mcs[HTT_TX_TXBF_RATE_STATS_NUM_MCS_COUNTERS];
+    A_UINT32 tx_su_ibf_mcs[HTT_TX_TXBF_RATE_STATS_NUM_MCS_COUNTERS];
+    A_UINT32 tx_su_ol_mcs[HTT_TX_TXBF_RATE_STATS_NUM_MCS_COUNTERS];
+    A_UINT32 tx_su_txbf_nss[HTT_TX_PDEV_STATS_NUM_SPATIAL_STREAMS];
+    A_UINT32 tx_su_ibf_nss[HTT_TX_PDEV_STATS_NUM_SPATIAL_STREAMS];
+    A_UINT32 tx_su_ol_nss[HTT_TX_PDEV_STATS_NUM_SPATIAL_STREAMS];
+    A_UINT32 tx_su_txbf_bw[HTT_TX_TXBF_RATE_STATS_NUM_BW_COUNTERS];
+    A_UINT32 tx_su_ibf_bw[HTT_TX_TXBF_RATE_STATS_NUM_BW_COUNTERS];
+    A_UINT32 tx_su_ol_bw[HTT_TX_TXBF_RATE_STATS_NUM_BW_COUNTERS];
+} htt_tx_pdev_txbf_rate_stats_tlv;
+
+/* NOTE:
+ * This structure is for documentation, and cannot be safely used directly.
+ * Instead, use the constituent TLV structures to fill/parse.
+ */
+typedef struct {
+    htt_tx_pdev_txbf_rate_stats_tlv txbf_rate_stats;
+} htt_pdev_txbf_rate_stats_t;
 
 #endif /* __HTT_STATS_H__ */
