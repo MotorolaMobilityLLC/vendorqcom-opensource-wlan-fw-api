@@ -115,6 +115,7 @@ typedef enum {
   WLAN_MODULE_DTF,                      /* 0x51 */ /* Deterministic Test Framework */
   WLAN_MODULE_QUIET_IE,                 /* 0x52 */
   WLAN_MODULE_SHMEM_MGR,                /* 0x53 */
+  WLAN_MODULE_CFIR,                     /* 0x54 */ /* Channel Capture */
 
   WLAN_MODULE_ID_MAX,
   WLAN_MODULE_ID_INVALID = WLAN_MODULE_ID_MAX,

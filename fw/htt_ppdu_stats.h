@@ -648,7 +648,8 @@ typedef struct {
             A_UINT32 phy_ppdu_tx_time_us:   16,
                      num_ul_expected_users:  8,
                      beam_change:            1,
-                     reserved1:              7;
+                     doppler_indication:     1,
+                     reserved1:              6;
         };
     };
     /* ppdu_start_tstmp_u32_us:
@@ -868,6 +869,8 @@ typedef struct {
 
     /* qdepth bytes : Contains Number of bytes of TIDQ depth */
     A_UINT32 qdepth_bytes;
+    A_UINT32 full_aid : 12,
+             reserved : 20;
 } htt_ppdu_stats_user_common_tlv;
 
 #define HTT_PPDU_STATS_USER_RATE_TLV_TID_NUM_M     0x000000ff
