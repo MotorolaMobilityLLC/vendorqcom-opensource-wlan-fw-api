@@ -6759,6 +6759,14 @@ typedef enum {
      */
     WMI_PDEV_PARAM_MWSCOEX_SCC_CHAVD_DELAY,
 
+    /*
+     * Parameter used to set ageout timer value from host (units = seconds).
+     * If not set, FW use default value 2 seconds.
+     * ageout time: the time upto which DFS channel information such as
+     * beacon found is remembered
+     */
+    WMI_PDEV_PARAM_SET_DFS_CHAN_AGEOUT_TIME,
+
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
@@ -19709,13 +19717,6 @@ typedef struct {
      * This data contains the string message which will be given to Host to dump it to kernel logs.
      */
 } wmi_nan_dmesg_event_fixed_param;
-
-typedef struct {
-    /** TLV tag and len; tag equals WMITLV_TAG_STRUCT_wmi_nan_capabilities */
-    A_UINT32 tlv_header;
-    /** Maximum number of ndp sessions supported by the Firmware */
-    A_UINT32 max_ndp_sessions;
-} wmi_nan_capabilities;
 
 /** NAN DATA CMD's */
 
