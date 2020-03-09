@@ -6767,6 +6767,9 @@ typedef enum {
      */
     WMI_PDEV_PARAM_SET_DFS_CHAN_AGEOUT_TIME,
 
+    /* Parameter used for enabling/disabling xlna bypass for SAP mode*/
+    WMI_PDEV_PARAM_SET_SAP_XLNA_BYPASS,
+
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
@@ -11471,6 +11474,15 @@ typedef enum {
      * when a new device is enabling NAN
      */
     WMI_VDEV_PARAM_ALLOW_NAN_INITIAL_DISCOVERY_OF_MP0_CLUSTER, /* 0x9C */
+
+    /**
+     * VDEV parameter to enable or disable roaming reason VSIE in
+     * re-association request
+     *
+     * Default : Disabled
+     * valid values: 0 - Disable 1 - Enable
+     */
+    WMI_VDEV_PARAM_ENABLE_DISABLE_ROAM_REASON_VSIE, /* 0x9D */
 
 
     /*=== ADD NEW VDEV PARAM TYPES ABOVE THIS LINE ===
@@ -28434,8 +28446,6 @@ typedef enum {
  */
 typedef enum {
     WMI_ROAM_TRIGGER_REASON_STA_KICKOUT = WMI_ROAM_TRIGGER_REASON_MAX,
-    WMI_ROAM_TRIGGER_REASON_ESS_RSSI,
-    WMI_ROAM_TRIGGER_REASON_WTC_BTM,
 
     WMI_ROAM_TRIGGER_EXT_REASON_MAX
 } WMI_ROAM_TRIGGER_EXT_REASON_ID;
