@@ -200,9 +200,10 @@
  * 3.76 Add HTT_H2T_MSG_TYPE_3_TUPLE_HASH_CFG msg.
  * 3.77 Add HTT_H2T_MSG_TYPE_RX_FULL_MONITOR_MODE msg.
  * 3.78 Add htt_ppdu_id def.
+ * 3.79 Add HTT_NUM_AC_WMM def.
  */
 #define HTT_CURRENT_VERSION_MAJOR 3
-#define HTT_CURRENT_VERSION_MINOR 78
+#define HTT_CURRENT_VERSION_MINOR 79
 
 #define HTT_NUM_TX_FRAG_DESC  1024
 
@@ -244,6 +245,42 @@
  * updated.
  */
 #define HTT_T2H_MSG_TYPE_RC_UPDATE_IND DEPRECATED_HTT_T2H_MSG_TYPE_RC_UPDATE_IND
+
+/* HTT Access Category values */
+enum HTT_AC_WMM {
+    /* WMM Access Categories */
+    HTT_AC_WMM_BE         = 0x0,
+    HTT_AC_WMM_BK         = 0x1,
+    HTT_AC_WMM_VI         = 0x2,
+    HTT_AC_WMM_VO         = 0x3,
+
+    HTT_NUM_AC_WMM        = 0x4,
+
+    /* extension Access Categories */
+    HTT_AC_EXT_NON_QOS    = 0x4,
+    HTT_AC_EXT_UCAST_MGMT = 0x5,
+    HTT_AC_EXT_MCAST_DATA = 0x6,
+    HTT_AC_EXT_MCAST_MGMT = 0x7,
+};
+enum HTT_AC_WMM_MASK {
+    /* WMM Access Categories */
+    HTT_AC_WMM_BE_MASK = (1 << HTT_AC_WMM_BE),
+    HTT_AC_WMM_BK_MASK = (1 << HTT_AC_WMM_BK),
+    HTT_AC_WMM_VI_MASK = (1 << HTT_AC_WMM_VI),
+    HTT_AC_WMM_VO_MASK = (1 << HTT_AC_WMM_VO),
+    /* extension Access Categories */
+    HTT_AC_EXT_NON_QOS_MASK    = (1 << HTT_AC_EXT_NON_QOS),
+    HTT_AC_EXT_UCAST_MGMT_MASK = (1 << HTT_AC_EXT_UCAST_MGMT),
+    HTT_AC_EXT_MCAST_DATA_MASK = (1 << HTT_AC_EXT_MCAST_DATA),
+    HTT_AC_EXT_MCAST_MGMT_MASK = (1 << HTT_AC_EXT_MCAST_MGMT),
+};
+#define HTT_AC_MASK_WMM \
+    (HTT_AC_WMM_BE_MASK | HTT_AC_WMM_BK_MASK | \
+     HTT_AC_WMM_VI_MASK | HTT_AC_WMM_VO_MASK)
+#define HTT_AC_MASK_EXT \
+    (HTT_AC_EXT_NON_QOS_MASK | HTT_AC_EXT_UCAST_MGMT_MASK | \
+    HTT_AC_EXT_MCAST_DATA_MASK | HTT_AC_EXT_MCAST_MGMT_MASK)
+#define HTT_AC_MASK_ALL (HTT_AC_MASK_WMM | HTT_AC_MASK_EXT)
 
 /*
  * htt_dbg_stats_type -

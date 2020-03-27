@@ -419,30 +419,6 @@ typedef enum {
     WMI_PDEV_DSM_FILTER_CMDID,
     /** enable/disable periodic frame injection */
     WMI_PDEV_FRAME_INJECT_CMDID,
-    /*
-     * Pdev level command to:
-     * a) solicit @WMI_TBTTOFFSET_EXT_UPDATE_EVENTID having TBTT in qtime
-     *    domain for all active vdevs or
-     * b) update one pdevs tbtt offset to another pdev for use in
-     *    RNR TBTT offset calculation.
-     */
-    WMI_PDEV_TBTT_OFFSET_SYNC_CMDID,
-    /** Bss color bitmap for SRG based spatial reuse feature */
-    WMI_PDEV_SET_SRG_BSS_COLOR_BITMAP_CMDID,
-    /** Partial BSSID bitmap for SRG based spatial reuse feature */
-    WMI_PDEV_SET_SRG_PARTIAL_BSSID_BITMAP_CMDID,
-    /** OBSS color enable bitmap for SRG based spatial reuse feature */
-    WMI_PDEV_SET_SRG_OBSS_COLOR_ENABLE_BITMAP_CMDID,
-    /** OBSS BSSID enable bitmap for SRG based spatial reuse feature */
-    WMI_PDEV_SET_SRG_OBSS_BSSID_ENABLE_BITMAP_CMDID,
-    /** OBSS color enable bitmap for NON_SRG based spatial reuse feature */
-    WMI_PDEV_SET_NON_SRG_OBSS_COLOR_ENABLE_BITMAP_CMDID,
-    /** OBSS BSSID enable bitmap for NON_SRG based spatial reuse feature */
-    WMI_PDEV_SET_NON_SRG_OBSS_BSSID_ENABLE_BITMAP_CMDID,
-    /** TPC stats display command */
-    WMI_PDEV_GET_TPC_STATS_CMDID,
-    /** ENABLE/DISABLE Duration based tx mode selection */
-    WMI_PDEV_ENABLE_DURATION_BASED_TX_MODE_SELECTION_CMDID,
 
     /* VDEV (virtual device) specific commands */
     /** vdev create */
@@ -4269,6 +4245,9 @@ typedef enum {
 /* Force all 6ghz scan channels to active channel */
 #define WMI_SCAN_FLAG_EXT_6GHZ_FORCE_CHAN_ACTIVE      0x00000100
 
+/* Force broadcast address in RA even though specified bssid */
+#define WMI_SCAN_FLAG_EXT_FORCE_BRCAST_RA             0x00000200
+
 /**
  * new 6 GHz flags per chan (short ssid or bssid) in struct
  * wmi_hint_freq_short_ssid or wmi_hint_freq_bssid
@@ -4278,6 +4257,9 @@ typedef enum {
 
 /* Force channel in WMI hint to active channel */
 #define WMI_SCAN_HINT_FLAG_FORCE_CHAN_ACTIVE    0x00000002
+
+/* Combine short SSID with legacy bssid list */
+#define WMI_SCAN_HINT_FLAG_COMBINE_BSSID_LIST   0x00000004
 
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_stop_scan_cmd_fixed_param */
@@ -11901,10 +11883,6 @@ typedef struct {
     A_UINT32 frame_inject_period;
     /** Destination address of frame */
     wmi_mac_addr frame_addr1;
-    /** Frame control duration field to be set in CTS_TO_SELF.
-     * Applicable to frame_type WMI_FRAME_INJECT_TYPE_CTS_TO_SELF only.
-     */
-    A_UINT32 fc_duration;
     /** variable buffer length. Can be used for frame template.
      * data is in TLV data[]
      */
@@ -11914,34 +11892,6 @@ typedef struct {
      * A_UINT8  data[]; <-- Variable length data
      */
 } wmi_frame_inject_cmd_fixed_param;
-
-#define WMI_BEACON_TMPLT_PROFILE_PERIOD_BITPOS  (0)
-#define WMI_BEACON_TMPLT_PROFILE_PERIOD_MASK    (0xff << WMI_BEACON_TMPLT_PROFILE_PERIOD_BITPOS)
-#define WMI_BEACON_TMPLT_SET_PROFILE_PERIOD(_ema_param, _val) \
-    WMI_SET_BITS(_ema_param, WMI_BEACON_TMPLT_PROFILE_PERIOD_BITPOS, 8, _val)
-#define WMI_BEACON_TMPLT_GET_PROFILE_PERIOD(_ema_param) \
-    WMI_GET_BITS(_ema_param, WMI_BEACON_TMPLT_PROFILE_PERIOD_BITPOS, 8)
-
-#define WMI_BEACON_TMPLT_TEMPLATE_INDEX_BITPOS  (8)
-#define WMI_BEACON_TMPLT_TEMPLATE_INDEX_MASK    (0xff << WMI_BEACON_TMPLT_TEMPLATE_INDEX_BITPOS)
-#define WMI_BEACON_TMPLT_SET_TEMPLATE_INDEX(_ema_param, _val) \
-    WMI_SET_BITS(_ema_param, WMI_BEACON_TMPLT_TEMPLATE_INDEX_BITPOS, 8, _val)
-#define WMI_BEACON_TMPLT_GET_TEMPLATE_INDEX(_ema_param) \
-    WMI_GET_BITS(_ema_param, WMI_BEACON_TMPLT_TEMPLATE_INDEX_BITPOS, 8)
-
-#define WMI_BEACON_TMPLT_FIRST_TEMPLATE_BITPOS  (16)
-#define WMI_BEACON_TMPLT_FIRST_TEMPLATE_MASK    (0xff << WMI_BEACON_TMPLT_FIRST_TEMPLATE_BITPOS)
-#define WMI_BEACON_TMPLT_SET_FIRST_TEMPLATE(_ema_param, _val) \
-    WMI_SET_BITS(_ema_param, WMI_BEACON_TMPLT_FIRST_TEMPLATE_BITPOS, 8, _val)
-#define WMI_BEACON_TMPLT_GET_FIRST_TEMPLATE(_ema_param) \
-    WMI_GET_BITS(_ema_param, WMI_BEACON_TMPLT_FIRST_TEMPLATE_BITPOS, 8)
-
-#define WMI_BEACON_TMPLT_LAST_TEMPLATE_BITPOS  (24)
-#define WMI_BEACON_TMPLT_LAST_TEMPLATE_MASK    (0xff << WMI_BEACON_TMPLT_LAST_TEMPLATE_BITPOS)
-#define WMI_BEACON_TMPLT_SET_LAST_TEMPLATE(_ema_param, _val) \
-    WMI_SET_BITS(_ema_param, WMI_BEACON_TMPLT_LAST_TEMPLATE_BITPOS, 8, _val)
-#define WMI_BEACON_TMPLT_GET_LAST_TEMPLATE(_ema_param) \
-    WMI_GET_BITS(_ema_param, WMI_BEACON_TMPLT_LAST_TEMPLATE_BITPOS, 8)
 
 typedef struct {
     A_UINT32 tlv_header; /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_bcn_tmpl_cmd_fixed_param */
@@ -14693,18 +14643,6 @@ typedef struct {
     A_UINT32 timeout;
     /** rssi (dBm units) when put in blacklist */
     A_INT32 rssi;
-    /* Blacklist reason from WMI_BLACKLIST_REASON_ID */
-    A_UINT32 reason;
-    /* Source of adding AP to BL from WMI_BLACKLIST_SOURCE_ID */
-    A_UINT32 source;
-    /*
-     * timestamp is the absolute time w.r.t host timer which is synchronized
-     * between the host and target.
-     * This timestamp indicates the time when AP added to blacklist.
-     */
-    A_UINT32 timestamp;
-    /* Original timeout value in milli seconds when AP added to BL */
-    A_UINT32 original_timeout;
 } wmi_roam_blacklist_with_timeout_tlv_param;
 
 /** WMI_ROAM_BLACKLIST_EVENT: generated whenever STA needs to move AP to blacklist for a particluar time
@@ -15495,47 +15433,47 @@ typedef enum pattern_type_e {
 } WOW_PATTERN_TYPE;
 
 typedef enum event_type_e {
-    WOW_BMISS_EVENT = 0,
-    WOW_BETTER_AP_EVENT,
-    WOW_DEAUTH_RECVD_EVENT,
-    WOW_MAGIC_PKT_RECVD_EVENT,
-    WOW_GTK_ERR_EVENT,
-    WOW_FOURWAY_HSHAKE_EVENT,
-    WOW_EAPOL_RECVD_EVENT,
-    WOW_NLO_DETECTED_EVENT,
-    WOW_DISASSOC_RECVD_EVENT,
-    WOW_PATTERN_MATCH_EVENT,
-    WOW_CSA_IE_EVENT,
-    WOW_PROBE_REQ_WPS_IE_EVENT,
-    WOW_AUTH_REQ_EVENT,
-    WOW_ASSOC_REQ_EVENT,
-    WOW_HTT_EVENT,
-    WOW_RA_MATCH_EVENT,
-    WOW_HOST_AUTO_SHUTDOWN_EVENT,
-    WOW_IOAC_MAGIC_EVENT,
-    WOW_IOAC_SHORT_EVENT,
-    WOW_IOAC_EXTEND_EVENT,
-    WOW_IOAC_TIMER_EVENT,
-    WOW_DFS_PHYERR_RADAR_EVENT,
-    WOW_BEACON_EVENT,
-    WOW_CLIENT_KICKOUT_EVENT,
-    WOW_NAN_EVENT,
-    WOW_EXTSCAN_EVENT,
-    WOW_IOAC_REV_KA_FAIL_EVENT,
-    WOW_IOAC_SOCK_EVENT,
-    WOW_NLO_SCAN_COMPLETE_EVENT,
-    WOW_NAN_DATA_EVENT,
-    WOW_NAN_RTT_EVENT, /* DEPRECATED, UNUSED */
-    WOW_OEM_RESPONSE_EVENT = WOW_NAN_RTT_EVENT, /* reuse deprecated event value */
-    WOW_TDLS_CONN_TRACKER_EVENT,
-    WOW_CRITICAL_LOG_EVENT,
-    WOW_CHIP_POWER_FAILURE_DETECT_EVENT,
-    WOW_11D_SCAN_EVENT,
-    WOW_SAP_OBSS_DETECTION_EVENT,
-    WOW_BSS_COLOR_COLLISION_DETECT_EVENT,
-    WOW_TKIP_MIC_ERR_FRAME_RECVD_EVENT,
-    WOW_ROAM_PREAUTH_START_EVENT,
-    WOW_ROAM_PMKID_REQUEST_EVENT,
+    WOW_BMISS_EVENT = 0,          /*  0 */
+    WOW_BETTER_AP_EVENT,          /*  1 */
+    WOW_DEAUTH_RECVD_EVENT,       /*  2 */
+    WOW_MAGIC_PKT_RECVD_EVENT,    /*  3 */
+    WOW_GTK_ERR_EVENT,            /*  4 */
+    WOW_FOURWAY_HSHAKE_EVENT,     /*  5 */
+    WOW_EAPOL_RECVD_EVENT,        /*  6 */
+    WOW_NLO_DETECTED_EVENT,       /*  7 */
+    WOW_DISASSOC_RECVD_EVENT,     /*  8 */
+    WOW_PATTERN_MATCH_EVENT,      /*  9 */
+    WOW_CSA_IE_EVENT,             /* 10 */
+    WOW_PROBE_REQ_WPS_IE_EVENT,   /* 11 */
+    WOW_AUTH_REQ_EVENT,           /* 12 */
+    WOW_ASSOC_REQ_EVENT,          /* 13 */
+    WOW_HTT_EVENT,                /* 14 */
+    WOW_RA_MATCH_EVENT,           /* 15 */
+    WOW_HOST_AUTO_SHUTDOWN_EVENT, /* 16 */
+    WOW_IOAC_MAGIC_EVENT,         /* 17 */
+    WOW_IOAC_SHORT_EVENT,         /* 18 */
+    WOW_IOAC_EXTEND_EVENT,        /* 19 */
+    WOW_IOAC_TIMER_EVENT,         /* 20 */
+    WOW_DFS_PHYERR_RADAR_EVENT,   /* 21 */
+    WOW_BEACON_EVENT,             /* 22 */
+    WOW_CLIENT_KICKOUT_EVENT,     /* 23 */
+    WOW_NAN_EVENT,                /* 24 */
+    WOW_EXTSCAN_EVENT,            /* 25 */
+    WOW_IOAC_REV_KA_FAIL_EVENT,   /* 26 */
+    WOW_IOAC_SOCK_EVENT,          /* 27 */
+    WOW_NLO_SCAN_COMPLETE_EVENT,  /* 28 */
+    WOW_NAN_DATA_EVENT,           /* 29 */
+    WOW_NAN_RTT_EVENT, /* DEPRECATED, UNUSED; 30 */
+    WOW_OEM_RESPONSE_EVENT = WOW_NAN_RTT_EVENT, /* reuse deprecated event value; 30 */
+    WOW_TDLS_CONN_TRACKER_EVENT,  /* 31 */
+    WOW_CRITICAL_LOG_EVENT,               /* 32 +  0 */
+    WOW_CHIP_POWER_FAILURE_DETECT_EVENT,  /* 32 +  1 */
+    WOW_11D_SCAN_EVENT,                   /* 32 +  2 */
+    WOW_SAP_OBSS_DETECTION_EVENT,         /* 32 +  3 */
+    WOW_BSS_COLOR_COLLISION_DETECT_EVENT, /* 32 +  4 */
+    WOW_TKIP_MIC_ERR_FRAME_RECVD_EVENT,   /* 32 +  5 */
+    WOW_ROAM_PREAUTH_START_EVENT,         /* 32 +  6 */
+    WOW_ROAM_PMKID_REQUEST_EVENT,         /* 32 +  7 */
 } WOW_WAKE_EVENT_TYPE;
 
 typedef enum wake_reason_e {
@@ -15603,6 +15541,7 @@ typedef enum wake_reason_e {
     WOW_REASON_ROAM_PREAUTH_START,
     WOW_REASON_ROAM_PMKID_REQUEST,
     WOW_REASON_RFKILL,
+    WOW_REASON_DFS_CAC,
 
     /* add new WOW_REASON_ defs before this line */
     WOW_REASON_MAX,
@@ -26957,6 +26896,7 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_VDEV_AUDIO_SYNC_QTIMER_CMDID);
         WMI_RETURN_STRING(WMI_ROAM_GET_SCAN_CHANNEL_LIST_CMDID);
         WMI_RETURN_STRING(WMI_VDEV_GET_BIG_DATA_CMDID);
+        WMI_RETURN_STRING(WMI_PDEV_FRAME_INJECT_CMDID);
     }
 
     return "Invalid WMI cmd";
@@ -28859,7 +28799,13 @@ typedef enum {
     WMI_ROAM_FAIL_REASON_EAPOL_M4_SEND,     /* Unable to send EAPOL M4 frame */
     WMI_ROAM_FAIL_REASON_EAPOL_M4_INTERNAL_DROP,   /* EAPOL M4 frame dropped internally */
     WMI_ROAM_FAIL_REASON_EAPOL_M4_NO_ACK,   /* No Ack is recieved for EAPOL M4 frame */
-
+    WMI_ROAM_FAIL_REASON_NO_SCAN_FOR_FINAL_BMISS, /* Roam scan is not started for Final Bmiss case */
+    WMI_ROAM_FAIL_REASON_DISCONNECT,        /* Deauth or Disassoc received from AP during roaming handoff */
+    WMI_ROAM_FAIL_REASON_SYNC,              /* when host wakes-up during roaming in-progress, abort current roaming if previous sync is pending */
+    WMI_ROAM_FAIL_REASON_SAE_INVALID_PMKID, /* WPA3-SAE invalid PMKID */
+    WMI_ROAM_FAIL_REASON_SAE_PREAUTH_TIMEOUT, /* WPA3-SAE pre-authentication timeout */
+    WMI_ROAM_FAIL_REASON_SAE_PREAUTH_FAIL, /* WPA3-SAE pre-authentication failed */
+    WMI_ROAM_FAIL_REASON_UNABLE_TO_START_ROAM_HO, /* Roam HO is not started due to FW internal issue */
 
     WMI_ROAM_FAIL_REASON_UNKNOWN = 255,
 } WMI_ROAM_FAIL_REASON_ID;
