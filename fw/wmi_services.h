@@ -436,7 +436,7 @@ typedef  enum  {
     WMI_SERVICE_NDI_NDI_STA_SUPPORT = 241, /* Indicates FW support for STA+NDI+NDI */
     WMI_SERVICE_BW_TRUE_160_SUPPORT = 242, /* Indicates FW supports true 160 BW */
     WMI_SERVICE_HOST_SCAN_STOP_VDEV_ALL_SUPPORT = 243, /* Indicates FW supports scan stop mode WMI_SCN_STOP_HOST_VAP_ALL */
-
+    WMI_SERVICE_BEACON_PROTECTION_SUPPORT = 244, /* Indicates FW supports WPA3 Beacon protection */
 
 
     /******* ADD NEW SERVICES UP TO 256 HERE *******/
@@ -462,25 +462,6 @@ typedef  enum  {
 
     /******* ADD NEW SERVICES 256 AND BEYOND HERE *******/
 
-    WMI_SERVICE_CFR_CAPTURE_COUNT_SUPPORT = 256, /* indicates FW support to program CFR capture mode and capture count */
-    WMI_SERVICE_OCV_SUPPORT = 257, /* FW supports OCV (Operating Channel Validation) */
-    WMI_SERVICE_LL_STATS_PER_CHAN_RX_TX_TIME_SUPPORT = 258, /* Indicates firmware support sending per channel own tx & rx time in radio stats of LL stats. */
-    WMI_SERVICE_THERMAL_MULTI_CLIENT_SUPPORT = 259, /* Indicates FW Thermal Mgr will support multiple clients for mitigation */
-    WMI_SERVICE_NAN_SEND_NAN_ENABLE_RESPONSE_TO_HOST = 260, /* Indicates FW will include an additional TLV in nan enable response for Host driver to parse */
-    WMI_SERVICE_UNIFIED_LL_GET_STA_CMD_SUPPORT = 261, /* Indicates that FW supports handling Link Layer and Get Station stats Commands together (WMI_REQUEST_UNIFIED_LL_GET_STA_CMDID) */
-    WMI_SERVICE_FSE_CMEM_ALLOC_SUPPORT = 262, /* Indicates that FW supports non-secure CMEM allocation for FSE table */
-    WMI_SERVICE_PASSIVE_SCAN_START_TIME_ENHANCE = 263, /* Indicates FW support to not skip beacon if passive scan dwell time + channel switch delay is lesser than beacon interval */
-    WMI_SERVICE_QOS_NULL_FRAME_TX_OVER_WMI = 264, /* Indicates that FW supports tx of QoS null frame downloaded through WMI interface */
-    WMI_SERVICE_SCAN_CONFIG_PER_CHANNEL = 265, /* Indicates that FW supports per channel configuration support in the scan start command */
-    WMI_SERVICE_CSA_BEACON_TEMPLATE = 266, /* Indicates that FW supports updating CSA count in beacon template */
-    WMI_SERVICE_BROADCAST_TWT_REQUESTER = 267, /* Indicates FW supports Broadcast TWT REQUESTER */
-    WMI_SERVICE_BROADCAST_TWT_RESPONDER = 268, /* Indicates FW supports Broadcast TWT RESPONDER */
-    WMI_SERVICE_TWT_NUDGE = 269, /* Indicates that FW supports TWT Nudge command and event */
-    WMI_SERVICE_TWT_STATS = 270, /* Indicates that FW supports TWT Get_stats command and event */
-    WMI_SERVICE_TWT_ALL_DIALOG_ID = 271, /* Indicates that FW supports TWT ALL dialog ID(255) for all commands and events, except for TWT add dialog and TWT get stats */
-    WMI_SERVICE_SPLIT_AST_SUPPORT = 272, /* Indicate that FW supports SPLIT AST table */
-    WMI_SERVICE_SPECTRAL_SCAN_DISABLED = 273, /* Indicates that SKU does not support normal spectral scan capabilities */
-
 
     WMI_MAX_EXT2_SERVICE
 
@@ -489,6 +470,7 @@ typedef  enum  {
 #define WMI_SERVICE_BM_SIZE   ((WMI_MAX_SERVICE + sizeof(A_UINT32)- 1)/sizeof(A_UINT32))
 
 #define WMI_NUM_EXT_SERVICES (WMI_MAX_EXT_SERVICE - WMI_MAX_SERVICE)
+#define WMI_NUM_EXT2_SERVICES (WMI_MAX_EXT2_SERVICE - WMI_MAX_EXT_SERVICE)
 
 /*
  * TEMPORARY WORKAROUND

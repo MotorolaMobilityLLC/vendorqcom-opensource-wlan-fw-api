@@ -419,6 +419,14 @@ typedef enum {
     WMI_PDEV_DSM_FILTER_CMDID,
     /** enable/disable periodic frame injection */
     WMI_PDEV_FRAME_INJECT_CMDID,
+    /*
+     * Pdev level command to:
+     * a) solicit @WMI_TBTTOFFSET_EXT_UPDATE_EVENTID having TBTT in qtime
+     *    domain for all active vdevs or
+     * b) update one pdevs tbtt offset to another pdev for use in
+     *    RNR TBTT offset calculation.
+     */
+    WMI_PDEV_TBTT_OFFSET_SYNC_CMDID,
 
     /* VDEV (virtual device) specific commands */
     /** vdev create */
@@ -2774,6 +2782,18 @@ typedef struct {
         WMI_BDF_REG_DB_VERSION_MINOR_SET(dword, bdf_reg_db_ver_minor); \
     } while (0)
 
+#define WMI_HW_MIN_TX_POWER_BITPOS  0
+#define WMI_HW_MAX_TX_POWER_BITPOS  16
+
+#define WMI_HW_MIN_TX_POWER_GET(dword) \
+    ((A_INT16) WMI_GET_BITS(dword, WMI_HW_MIN_TX_POWER_BITPOS, 16))
+#define WMI_HW_MIN_TX_POWER_SET(dword, value) \
+    WMI_SET_BITS(dword, WMI_HW_MIN_TX_POWER_BITPOS, 16, value)
+#define WMI_HW_MAX_TX_POWER_GET(dword) \
+    ((A_INT16) WMI_GET_BITS(dword, WMI_HW_MAX_TX_POWER_BITPOS, 16))
+#define WMI_HW_MAX_TX_POWER_SET(dword, value) \
+    WMI_SET_BITS(dword, WMI_HW_MAX_TX_POWER_BITPOS, 16, value)
+
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_service_ready_ext2_event_fixed_param.*/
 
@@ -2787,6 +2807,26 @@ typedef struct {
      * access these bitfields.
      */
     A_UINT32 reg_db_version;
+
+    /* Min & Max Tx power (in dBm) supported in 2.4 GHz band
+     *  [15:0]   - Min Tx Power in 2.4 GHz band
+     *  [31:16]  - Max Tx Power in 2.4 GHz band
+     * WMI_HW_[MIN,MAX]_TX_POWER_[GET,SET] macros are used to access
+     * these bitfields.
+     * If Min Tx Power = Max Tx Power = 0 means Min Tx Power & Max Tx Power
+     * are not specified.
+     */
+    A_UINT32 hw_min_max_tx_power_2g;
+
+    /* Min & Max Tx power (in dBm) supported in 5 GHz band
+     *  [15:0]   - Min Tx Power in 5 GHz band
+     *  [31:16]  - Max Tx Power in 5 GHz band
+     * WMI_HW_[MIN,MAX]_TX_POWER_[GET,SET] macros are used to access
+     * these bitfields.
+     * If Min Tx Power = Max Tx Power = 0 means Min Tx Power & Max Tx Power
+     * are not specified.
+     */
+    A_UINT32 hw_min_max_tx_power_5g;
 } wmi_service_ready_ext2_event_fixed_param;
 
 typedef struct {
@@ -3600,6 +3640,14 @@ typedef struct {
      *  Bits 31:1 - Reserved
      */
     A_UINT32 host_service_flags;
+
+    /** @brief max_rnr_neighbours -
+     * The Maximum number of neighbour RNR's from other SoC.
+     * This limits the field @num_bss in @wmi_pdev_tbtt_offset_sync_cmd_fixed_param.
+     * Value of 0 means crosss SoC TBTT offset syncronization not required and
+     * @PDEV_TBTT_OFFSET_SYNC_CMD wouldn't be used.
+     */
+    A_UINT32 max_rnr_neighbours;
 } wmi_resource_config;
 
 #define WMI_MSDU_FLOW_AST_ENABLE_GET(msdu_flow_config0, ast_x) \
@@ -11937,6 +11985,15 @@ typedef struct {
      * Only non-zero values are considered.
      */
     A_UINT32 mu_edca_ie_offset;
+    /** Specify features that need to be enabled/disabled for the beacon.
+     *
+     * Bit 0:
+     *     Beacon Protection feature enable/disable indication.
+     *     Refer to WMI_BEACON_PROTECTION_EN_SET/GET macros.
+     *
+     * More features can be added to this bitmap.
+     */
+    A_UINT32 feature_enable_bitmap;
 
 /*
  * The TLVs follows:
@@ -14217,6 +14274,11 @@ typedef struct {
      * by at least candidate_min_roam_score_delta.
      */
     A_UINT32 candidate_min_roam_score_delta;
+    /*
+     * For OCE Release 2, give weightage to roam candidate tx power if
+     * oce_ap_tx_pwr_weightage_pcnt != 0.
+     */
+    A_UINT32 oce_ap_tx_pwr_weightage_pcnt;
 } wmi_roam_cnd_scoring_param;
 
 typedef struct {
@@ -15474,6 +15536,7 @@ typedef enum event_type_e {
     WOW_TKIP_MIC_ERR_FRAME_RECVD_EVENT,   /* 32 +  5 */
     WOW_ROAM_PREAUTH_START_EVENT,         /* 32 +  6 */
     WOW_ROAM_PMKID_REQUEST_EVENT,         /* 32 +  7 */
+    WOW_DFS_CAC_COMPLETE_EVENT,           /* 32 +  8 */
 } WOW_WAKE_EVENT_TYPE;
 
 typedef enum wake_reason_e {
@@ -25495,6 +25558,49 @@ typedef struct {
  **/
 } wmi_vdev_set_pcl_cmd_fixed_param;
 
+/** command type for WMI_PDEV_TBTT_OFFSET_SYNC_CMDID */
+enum pdev_tbtt_offset_cmd_type
+{
+    WMI_PDEV_GET_TBTT_OFFSET,
+    WMI_PDEV_SET_TBTT_OFFSET,
+};
+
+/** Per neighbour TBTT offset information */
+typedef struct
+{
+    /** TLV tag and len, tag equals WMITLV_TAG_STRUC_wmi_pdev_tbtt_offset_info */
+    A_UINT32 tlv_header;
+    /* neighbour bss mac address */
+    wmi_mac_addr bss_mac;
+    /* neighbour bss beacon interval in TU */
+    A_UINT32 beacon_intval;
+    /* neighbour bss operating class as defined in Annex E, IEEE80211 standard */
+    A_UINT32 opclass;
+    /* neighbour bss operating channel index */
+    A_UINT32 chan_idx;
+    /* neighbour bss next QTIME TBTT high 32 bit value */
+    A_UINT32 next_qtime_tbtt_high;
+    /* neighbour bss next QTIME TBTT low 32 bit value */
+    A_UINT32 next_qtime_tbtt_low;
+} wmi_pdev_rnr_bss_tbtt_info;
+
+typedef struct {
+    /** TLV tag and len; tag equals
+     * WMITLV_TAG_STRUC_wmi_pdev_tbtt_offset_sync_cmd_fixed_param */
+    A_UINT32 tlv_header;
+    /*
+     * PDEV identifier. Value WMI_PDEV_ID_SOC implies applicable to all pdevs
+     * on SoC else applicable only to specified pdev
+     */
+    A_UINT32 pdev_id;
+    /* command_type from enum pdev_tbtt_offset_cmd_type */
+    A_UINT32 cmd_type;
+    /*
+     * Following this structure is the TLV:
+     * struct wmi_pdev_rnr_bss_tbtt_info rnr_tbtt_info[num_rnr_tbtt_info];
+     */
+} wmi_pdev_tbtt_offset_sync_cmd_fixed_param;
+
 typedef enum {
     WLAN_2G_CAPABILITY = 0x1,
     WLAN_5G_CAPABILITY = 0x2,
@@ -25775,6 +25881,11 @@ typedef struct {
      * [31:5] : Reserved
      */
     A_UINT32 nss_ratio;
+    /**************************************************************************
+     * DON'T ADD ANY FURTHER FIELDS HERE -
+     * It would cause the size of the READY_EXT message within some targets
+     * to exceed the size of the buffer used for the message.
+     **************************************************************************/
 } WMI_MAC_PHY_CAPABILITIES;
 
 typedef struct {
@@ -25960,6 +26071,11 @@ typedef struct {
     A_UINT32 high_2ghz_chan; /* freq in MHz */
     A_UINT32 low_5ghz_chan;  /* freq in MHz */
     A_UINT32 high_5ghz_chan; /* freq in MHz */
+    /**************************************************************************
+     * DON'T ADD ANY FURTHER FIELDS HERE -
+     * It would cause the size of the READY_EXT message within some targets
+     * to exceed the size of the buffer used for the message.
+     **************************************************************************/
 } WMI_HAL_REG_CAPABILITIES_EXT;
 
 typedef struct {
@@ -25969,42 +26085,6 @@ typedef struct {
     /* regdomain value specified in EEPROM */
     A_UINT32 wireless_modes_ext;
 } WMI_HAL_REG_CAPABILITIES_EXT2;
-
-/*
- * This TLV used for Scan Radio RDP
- * We have an RDP which supports Multiband-Frequency (2Ghz, 5Ghz and 6Ghz)
- * on a single radio.
- * The AP acts as a special VAP. There will not be WMI_VDEV_UP_CMD.
- * This radio is used only for scanning purpose and to send few MGMT frames.
- * The DFS feature is disabled on this scan radio, since there will not be
- * much TX traffic.
- * The Host has to disable CAC timer because DFS feature not supported here.
- * In order to know about the scan radio RDP and DFS disabled case,
- * the target has to send this information to Host per pdev via
- * WMI_SERVICE_READY_EXT2_EVENT.
- * The target is notified of the special scan VAP by the flags variable
- * in the WMI_CREATE_CMD.
- */
-typedef struct {
-    A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_WMI_SCAN_RADIO_CAPABILITIES_EXT2 */
-    A_UINT32 phy_id;
-    /*
-     * Bit 0:
-     *     1 - SCAN_RADIO supported  0 - SCAN_RADIO  not supported
-     *     Refer to WMI_SCAN_RADIO_CAP_SCAN_RADIO_FLAG_SET, GET macros
-     * Bit 1:
-     *     1 - DFS enabled           0 - DFS disabled
-     *     Refer to WMI_SCAN_RADIO_CAP_DFS_FLAG_SET, GET macros
-     * [2:31] reserved
-     */
-    A_UINT32 flags;
-} WMI_SCAN_RADIO_CAPABILITIES_EXT2;
-
-#define WMI_SCAN_RADIO_CAP_SCAN_RADIO_FLAG_GET(flag)         WMI_GET_BITS(flag, 0, 1)
-#define WMI_SCAN_RADIO_CAP_SCAN_RADIO_FLAG_SET(flag, val)    WMI_SET_BITS(flag, 0, 1, val)
-
-#define WMI_SCAN_RADIO_CAP_DFS_FLAG_GET(flag)                WMI_GET_BITS(flag, 1, 1)
-#define WMI_SCAN_RADIO_CAP_DFS_FLAG_SET(flag, val)           WMI_SET_BITS(flag, 1, 1, val)
 
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_WMI_SOC_HAL_REG_CAPABILITIES */
@@ -26897,6 +26977,7 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_ROAM_GET_SCAN_CHANNEL_LIST_CMDID);
         WMI_RETURN_STRING(WMI_VDEV_GET_BIG_DATA_CMDID);
         WMI_RETURN_STRING(WMI_PDEV_FRAME_INJECT_CMDID);
+        WMI_RETURN_STRING(WMI_PDEV_TBTT_OFFSET_SYNC_CMDID);
     }
 
     return "Invalid WMI cmd";

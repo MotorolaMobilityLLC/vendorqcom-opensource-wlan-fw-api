@@ -1052,6 +1052,10 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_nan_dmesg_event_fixed_param,
     WMITLV_TAG_STRUC_wmi_frame_inject_cmd_fixed_param,
     WMITLV_TAG_STRUC_wmi_smartant_event_fixed_param,
+    WMITLV_TAG_STRUC_wmi_pdev_tbtt_offset_sync_cmd_fixed_param,
+    WMITLV_TAG_STRUC_wmi_pdev_rnr_bss_tbtt_info,
+    WMITLV_TAG_STRUC_WMI_MAC_PHY_CAPABILITIES_EXT,
+    WMITLV_TAG_STRUC_WMI_HAL_REG_CAPABILITIES_EXT2,
 } WMITLV_TAG_ID;
 
 /*
@@ -1483,6 +1487,7 @@ typedef enum {
     OP(WMI_ROAM_GET_SCAN_CHANNEL_LIST_CMDID) \
     OP(WMI_VDEV_GET_BIG_DATA_CMDID) \
     OP(WMI_PDEV_FRAME_INJECT_CMDID) \
+    OP(WMI_PDEV_TBTT_OFFSET_SYNC_CMDID) \
     /* add new CMD_LIST elements above this line */
 
 
@@ -4344,6 +4349,12 @@ WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_GET_BIG_DATA_CMDID);
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_BYTE, A_UINT8, bufp, WMITLV_SIZE_VAR)
 WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_FRAME_INJECT_CMDID);
 
+/* Get / Set RNR TBTT offset info */
+#define WMITLV_TABLE_WMI_PDEV_TBTT_OFFSET_SYNC_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_tbtt_offset_sync_cmd_fixed_param, wmi_pdev_tbtt_offset_sync_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_pdev_rnr_bss_tbtt_info, rnr_tbtt_info, WMITLV_SIZE_VAR)
+WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_TBTT_OFFSET_SYNC_CMDID);
+
 
 /************************** TLV definitions of WMI events *******************************/
 
@@ -4389,9 +4400,7 @@ WMITLV_CREATE_PARAM_STRUC(WMI_SERVICE_READY_EXT_EVENTID);
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, WMI_DMA_RING_CAPABILITIES, dma_ring_caps, WMITLV_SIZE_VAR) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_spectral_bin_scaling_params, wmi_bin_scaling_params, WMITLV_SIZE_VAR) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, WMI_MAC_PHY_CAPABILITIES_EXT, mac_phy_caps, WMITLV_SIZE_VAR) \
-    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, WMI_HAL_REG_CAPABILITIES_EXT2, hal_reg_caps, WMITLV_SIZE_VAR) \
-    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_nan_capabilities, wmi_nan_capabilities, nan_cap, WMITLV_SIZE_FIX) \
-    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, WMI_SCAN_RADIO_CAPABILITIES_EXT2, wmi_scan_radio_caps, WMITLV_SIZE_VAR)
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, WMI_HAL_REG_CAPABILITIES_EXT2, hal_reg_caps, WMITLV_SIZE_VAR)
 WMITLV_CREATE_PARAM_STRUC(WMI_SERVICE_READY_EXT2_EVENTID);
 
 #define WMITLV_TABLE_WMI_CHAN_RF_CHARACTERIZATION_INFO_EVENTID(id,op,buf,len) \
@@ -5887,6 +5896,7 @@ WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_SEND_BIG_DATA_EVENTID);
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_nan_dmesg_event_fixed_param, wmi_nan_dmesg_event_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_BYTE, A_UINT8, msg, WMITLV_SIZE_VAR)
 WMITLV_CREATE_PARAM_STRUC(WMI_NAN_DMESG_EVENTID);
+
 
 #ifdef __cplusplus
 }
