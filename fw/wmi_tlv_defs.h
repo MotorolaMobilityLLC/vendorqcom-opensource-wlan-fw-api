@@ -1056,6 +1056,8 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_pdev_rnr_bss_tbtt_info,
     WMITLV_TAG_STRUC_WMI_MAC_PHY_CAPABILITIES_EXT,
     WMITLV_TAG_STRUC_WMI_HAL_REG_CAPABILITIES_EXT2,
+    WMITLV_TAG_STRUC_wmi_roam_pmk_cache_synch_tlv_param,
+    WMITLV_TAG_STRUC_wmi_mdns_set_staIP_cmd_fixed_param,
 } WMITLV_TAG_ID;
 
 /*
