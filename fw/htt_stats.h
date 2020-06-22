@@ -3904,6 +3904,15 @@ typedef struct {
     /* Stats for MCS 12/13 */
     A_UINT32 ul_mumimo_rx_mcs_ext[HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
     A_UINT32 ul_mumimo_rx_gi_ext[HTT_RX_PDEV_STATS_NUM_GI_COUNTERS][HTT_RX_PDEV_STATS_NUM_EXTRA_MCS_COUNTERS];
+
+    /* RSSI in dBm for Rx TB PPDUs */
+    A_INT8 rx_ul_mumimo_chain_rssi_in_dbm[HTT_RX_PDEV_STATS_ULMUMIMO_NUM_SPATIAL_STREAMS][HTT_RX_PDEV_STATS_TOTAL_BW_COUNTERS];
+    /* Target RSSI stats for UL MUMIMO triggers. Units dBm */
+    A_INT8 rx_ul_mumimo_target_rssi[HTT_TX_PDEV_STATS_NUM_UL_MUMIMO_USER_STATS][HTT_RX_PDEV_STATS_NUM_BW_COUNTERS];
+    /* FD RSSI stats for UL TB PPDUs. Units dBm */
+    A_INT8 rx_ul_mumimo_fd_rssi[HTT_TX_PDEV_STATS_NUM_UL_MUMIMO_USER_STATS][HTT_RX_PDEV_STATS_ULMUMIMO_NUM_SPATIAL_STREAMS];
+    /* Pilot EVM Stats */
+    A_INT8 rx_ulmumimo_pilot_evm_dB_mean[HTT_TX_PDEV_STATS_NUM_UL_MUMIMO_USER_STATS][HTT_RX_PDEV_STATS_ULMUMIMO_NUM_SPATIAL_STREAMS];
 } htt_rx_pdev_ul_mumimo_trig_stats_tlv;
 
 /* STATS_TYPE : HTT_DBG_EXT_STATS_PDEV_UL_MUMIMO_TRIG_STATS

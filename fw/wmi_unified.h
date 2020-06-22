@@ -439,6 +439,8 @@ typedef enum {
     WMI_PDEV_SET_NON_SRG_OBSS_COLOR_ENABLE_BITMAP_CMDID,
     /** OBSS BSSID enable bitmap for NON_SRG based spatial reuse feature */
     WMI_PDEV_SET_NON_SRG_OBSS_BSSID_ENABLE_BITMAP_CMDID,
+    /** TPC stats display command */
+    WMI_PDEV_GET_TPC_STATS_CMDID,
 
     /* VDEV (virtual device) specific commands */
     /** vdev create */
@@ -921,9 +923,6 @@ typedef enum {
 
     /** request for control path stats */
     WMI_REQUEST_CTRL_PATH_STATS_CMDID,
-
-    /** unified request for LL stats and get station cmds */
-    WMI_REQUEST_UNIFIED_LL_GET_STA_CMDID,
 
 
     /** ARP OFFLOAD REQUEST*/
@@ -1455,6 +1454,10 @@ typedef enum {
      */
     WMI_PDEV_MULTIPLE_VDEV_RESTART_RESP_EVENTID,
 
+    /** WMI event in response to TPC STATS command */
+    WMI_PDEV_GET_TPC_STATS_EVENTID,
+
+
     /* VDEV specific events */
     /** VDEV started event in response to VDEV_START request */
     WMI_VDEV_START_RESP_EVENTID = WMI_EVT_GRP_START_ID(WMI_GRP_VDEV),
@@ -1519,6 +1522,8 @@ typedef enum {
     WMI_VDEV_SEND_BIG_DATA_EVENTID,
     /** send BIG DATA stats to host phase 2 */
     WMI_VDEV_SEND_BIG_DATA_P2_EVENTID,
+    /** Latency related information received from beacon IE */
+    WMI_VDEV_BCN_LATENCY_EVENTID,
 
 
     /* peer specific events */
@@ -3674,7 +3679,21 @@ typedef struct {
      * (maximum number of beacons after which VAP profiles repeat)
      * for any EMA VAP on any pdev.
      */
+
     A_UINT32 ema_max_profile_period;
+    /** @brief max_ndp_sessions
+     * This is the max ndp sessions sent by the host which is the minimum
+     * of the value requested within the host's ini configurations and
+     * the max ndp sessions supported by the firmware (as reported in the
+     * SERVICE_READY_EXT2_EVENT message).
+     */
+    A_UINT32 max_ndp_sessions;
+
+    /** @brief max_ndi_supported
+     * This is the max ndi interfaces sent by the host based on the value
+     * specified by the host's ini configuration.
+     */
+    A_UINT32 max_ndi_interfaces;
 } wmi_resource_config;
 
 #define WMI_MSDU_FLOW_AST_ENABLE_GET(msdu_flow_config0, ast_x) \
@@ -6826,6 +6845,16 @@ typedef enum {
     /* Parameter used to enable/disable SR prohibit feature */
     WMI_PDEV_PARAM_ENABLE_SR_PROHIBIT,
 
+    /*
+     * Parameter used to enable/disable UL OFDMA mBSSID support for
+     * trigger frames. It is disabled by default.
+     * bit | config_mode
+     * -----------------
+     *  0  | Enable/Disable mBSSID trigger support for basic triggers.
+     *  1  | Enable/Disable mBSSID trigger support for BSR triggers.
+     */
+    WMI_PDEV_PARAM_ENABLE_MBSSID_CTRL_FRAME,
+
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
@@ -6876,9 +6905,6 @@ typedef enum {
 #define WMI_PDEV_SRG_DISABLE(pd_threshold_cfg) WMI_SET_BITS(pd_threshold_cfg, 30, 1, 0)
 #define WMI_PDEV_SRG_PD_THRESHOLD_SET(pd_threshold_cfg, value) WMI_SET_BITS(pd_threshold_cfg, 8, 8, value)
 #define WMI_PDEV_SRG_PD_THRESHOLD_GET(pd_threshold_cfg) WMI_GET_BITS(pd_threshold_cfg, 8, 8)
-
-#define WMI_PDEV_IS_PD_THRESHOLD_IN_DBM(pd_threshold_cfg) WMI_GET_BITS(pd_threshold_cfg, 29, 1)
-#define WMI_PDEV_SET_PD_THRESHOLD_IN_DBM(pd_threshold_cfg) WMI_SET_BITS(pd_threshold_cfg, 29, 1, 1)
 
 #define WMI_PDEV_OBSS_PD_ENABLE_PER_AC_SET(per_ac_cfg, value) WMI_SET_BITS(per_ac_cfg, 0, 4, value)
     #define WMI_PDEV_OBSS_PD_ENABLE_PER_AC_GET(per_ac_cfg) WMI_GET_BITS(per_ac_cfg, 0, 4)
@@ -7766,23 +7792,22 @@ typedef struct {
 } wmi_pdev_set_wmm_params_cmd_fixed_param;
 
 typedef enum {
-    WMI_REQUEST_PEER_STAT            = 0x00001,
-    WMI_REQUEST_AP_STAT              = 0x00002,
-    WMI_REQUEST_PDEV_STAT            = 0x00004,
-    WMI_REQUEST_VDEV_STAT            = 0x00008,
-    WMI_REQUEST_BCNFLT_STAT          = 0x00010,
-    WMI_REQUEST_VDEV_RATE_STAT       = 0x00020,
-    WMI_REQUEST_INST_STAT            = 0x00040,
-    WMI_REQUEST_MIB_STAT             = 0x00080,
-    WMI_REQUEST_RSSI_PER_CHAIN_STAT  = 0x00100,
-    WMI_REQUEST_CONGESTION_STAT      = 0x00200,
-    WMI_REQUEST_PEER_EXTD_STAT       = 0x00400,
-    WMI_REQUEST_BCN_STAT             = 0x00800,
-    WMI_REQUEST_BCN_STAT_RESET       = 0x01000,
-    WMI_REQUEST_PEER_EXTD2_STAT      = 0x02000,
-    WMI_REQUEST_MIB_EXTD_STAT        = 0x04000,
-    WMI_REQUEST_PMF_BCN_PROTECT_STAT = 0x08000,
-    WMI_REQUEST_VDEV_EXTD_STAT       = 0x10000,
+    WMI_REQUEST_PEER_STAT            = 0x0001,
+    WMI_REQUEST_AP_STAT              = 0x0002,
+    WMI_REQUEST_PDEV_STAT            = 0x0004,
+    WMI_REQUEST_VDEV_STAT            = 0x0008,
+    WMI_REQUEST_BCNFLT_STAT          = 0x0010,
+    WMI_REQUEST_VDEV_RATE_STAT       = 0x0020,
+    WMI_REQUEST_INST_STAT            = 0x0040,
+    WMI_REQUEST_MIB_STAT             = 0x0080,
+    WMI_REQUEST_RSSI_PER_CHAIN_STAT  = 0x0100,
+    WMI_REQUEST_CONGESTION_STAT      = 0x0200,
+    WMI_REQUEST_PEER_EXTD_STAT       = 0x0400,
+    WMI_REQUEST_BCN_STAT             = 0x0800,
+    WMI_REQUEST_BCN_STAT_RESET       = 0x1000,
+    WMI_REQUEST_PEER_EXTD2_STAT      = 0x2000,
+    WMI_REQUEST_MIB_EXTD_STAT        = 0x4000,
+    WMI_REQUEST_PMF_BCN_PROTECT_STAT = 0x8000,
 } wmi_stats_id;
 
 /*
@@ -8549,10 +8574,6 @@ typedef struct {
  * wmi_pmf_bcn_protect_stats pmf_bcn_protect_stats[]
  * follows the other TLVs
  */
-/* If WMI_REQUEST_VDEV_EXTD_STAT is set in stats_id, then TLV
- * wmi_vdev_extd_stats wmi_vdev_extd_stats[]
- * follows the other TLVs
- */
 } wmi_stats_event_fixed_param;
 
 /* WLAN channel CCA stats bitmap  */
@@ -9162,286 +9183,21 @@ typedef struct {
     A_UINT32 vdev_pause_fail_rt_to_sched_algo_fifo_full_cnt;
 } wmi_ctrl_path_pdev_stats_struct;
 
-typedef enum {
-    WMI_CTRL_PATH_STATS_ARENA_HRAM,
-    WMI_CTRL_PATH_STATS_ARENA_HCRAM,
-    WMI_CTRL_PATH_STATS_ARENA_HREMOTE,
-    WMI_CTRL_PATH_STATS_ARENA_HCREMOTE,
-    WMI_CTRL_PATH_STATS_ARENA_REMOTE,
-    WMI_CTRL_PATH_STATS_ARENA_SRAM,
-    WMI_CTRL_PATH_STATS_ARENA_SRAM_AUX,
-    WMI_CTRL_PATH_STATS_ARENA_PAGEABLE,
-    WMI_CTRL_PATH_STATS_ARENA_CMEM,
-    WMI_CTRL_PATH_STATS_ARENA_TRAM,
-    WMI_CTRL_PATH_STATS_ARENA_HWIO,
-    WMI_CTRL_PATH_STATS_ARENA_CALDB,
-    WMI_CTRL_PATH_STATS_ARENA_M3,
-    WMI_CTRL_PATH_STATS_ARENA_ETMREMOTE,
-    WMI_CTRL_PATH_STATS_ARENA_M3_DUMP,
-    WMI_CTRL_PATH_STATS_ARENA_EMUPHY,
-    WMI_CTRL_PATH_STATS_ARENA_DBG_SRAM,
-    WMI_CTRL_PATH_STATS_ARENA_DBG_SRAM_AUX,
-    WMI_CTRL_PATH_STATS_ARENA_SRAM_AUX_OVERFLOW,
-    WMI_CTRL_PATH_STATS_ARENA_AMSS,
-    WMI_CTRL_PATH_STATS_ARENA_MAX,
-} wmi_ctrl_path_fw_arena_ids;
-
-/*
- * Used by some hosts to print names of arenas, based on
- * wmi_ctrl_path_fw_arena_ids values specified in
- * wmi_ctrl_path_mem_stats_struct in ctrl_path_stats event msg.
- */
-static INLINE A_UINT8 *wmi_ctrl_path_fw_arena_id_to_name(A_UINT32 arena_id)
-{
-    switch(arena_id)
-    {
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_HRAM);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_HCRAM);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_HREMOTE);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_HCREMOTE);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_REMOTE);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_SRAM);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_SRAM_AUX);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_PAGEABLE);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_CMEM);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_TRAM);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_HWIO);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_CALDB);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_M3);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_ETMREMOTE);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_M3_DUMP);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_EMUPHY);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_DBG_SRAM);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_DBG_SRAM_AUX);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_SRAM_AUX_OVERFLOW);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_ARENA_AMSS);
-    }
-
-    return (A_UINT8 *) "WMI_CTRL_PATH_STATS_ARENA_UNKNOWN";
-}
-
-typedef struct {
-    /** TLV tag and len; tag equals
-     *  WMITLV_TAG_STRUC_wmi_ctrl_path_mem_stats_struct */
-    A_UINT32 tlv_header;
-    A_UINT32 arena_id;          /* see wmi_ctrl_path_fw_arena_ids */
-    A_UINT32 total_bytes;       /* total bytes in each arena */
-    A_UINT32 allocated_bytes;   /* allocated bytes in each arena */
-} wmi_ctrl_path_mem_stats_struct;
-
-/* status code of Get stats TWT dialog */
-typedef enum _WMI_GET_STATS_TWT_STATUS_T {
-    WMI_GET_STATS_TWT_STATUS_OK,                 /* Get status TWT dialog successfully completed */
-    WMI_GET_STATS_TWT_STATUS_DIALOG_ID_NOT_EXIST,/* TWT dialog ID does not exist */
-    WMI_GET_STATS_TWT_STATUS_INVALID_PARAM,      /* invalid parameters */
-} WMI_GET_STATS_TWT_STATUS_T;
-
-typedef struct {
-    /** TLV tag and len; tag equals
-     *  WMITLV_TAG_STRUC_wmi_ctrl_path_twt_stats_struct */
-    A_UINT32 tlv_header;
-    A_UINT32 dialog_id;         /* TWT dialog ID */
-    A_UINT32 status;            /* refer to WMI_GET_STATS_TWT_STATUS_T */
-    A_UINT32 num_sp_cycles;     /* Number of TWT SP's*/
-    A_UINT32 avg_sp_dur_us;     /* Average SP time */
-    A_UINT32 min_sp_dur_us;     /* Minimum SP time */
-    A_UINT32 max_sp_dur_us;     /* Maximum SP time */
-    A_UINT32 tx_mpdu_per_sp;    /* Average pkts tx per SP */
-    A_UINT32 rx_mpdu_per_sp;    /* Average pkts rx per SP */
-    A_UINT32 tx_bytes_per_sp;   /* Average tx bytes per SP */
-    A_UINT32 rx_bytes_per_sp;   /* Average rx bytes per SP */
-} wmi_ctrl_path_twt_stats_struct;
-
-typedef enum {
-    WMI_CTRL_PATH_STATS_CAL_PROFILE_COLD_BOOT_CAL       = 0,
-    WMI_CTRL_PATH_STATS_CAL_PROFILE_FULL_CHAN_SWITCH    = 1,
-    WMI_CTRL_PATH_STATS_CAL_PROFILE_SCAN_CHAN_SWITCH    = 2,
-    WMI_CTRL_PATH_STATS_CAL_PROFILE_DPD_SPLIT_CAL       = 3,
-    WMI_CTRL_PATH_STATS_CAL_PROFILE_TEMP_TRIGEER_CAL    = 4,
-    WMI_CTRL_PATH_STATS_CAL_PROFILE_POWER_SAVE_WAKE_UP  = 5,
-    WMI_CTRL_PATH_STATS_CAL_PROFILE_TIMER_TRIGGER_CAL   = 6,
-    WMI_CTRL_PATH_STATS_CAL_PROFILE_FTM_TRIGGER_CAL     = 7,
-    WMI_CTRL_PATH_STATS_CAL_PROFILE_AGILE_OR_POWER_DOWN_DTIM = 8,
-    WMI_CTRL_PATH_STATS_CAL_PROFILE_NOISY_ENV_RXDO      = 9,
-} wmi_ctrl_path_stats_cal_profile_ids;
-
-typedef enum {
-    WMI_CTRL_PATH_STATS_CAL_TYPE_ADC                     = 0,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_DAC                     = 1,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_PROCESS                 = 2,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_NOISE_FLOOR             = 3,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_RXDCO                   = 4,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_COMB_TXLO_TXIQ_RXIQ     = 5,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_TXLO                    = 6,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_TXIQ                    = 7,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_RXIQ                    = 8,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_IM2                     = 9,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_LNA                     = 10,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_DPD_LP_RXDCO            = 11,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_DPD_LP_RXIQ             = 12,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_DPD_MEMORYLESS          = 13,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_DPD_MEMORY              = 14,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_IBF                     = 15,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_PDET_AND_PAL            = 16,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_RXDCO_IQ                = 17,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_RXDCO_DTIM              = 18,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_TPC_CAL                 = 19,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_DPD_TIMEREQ             = 20,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_BWFILTER                = 21,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_PEF                     = 22,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_PADROOP                 = 23,
-    WMI_CTRL_PATH_STATS_CAL_TYPE_SELFCALTPC              = 24,
-} wmi_ctrl_path_stats_cal_type_ids;
-
-typedef enum {
-    WMI_CTRL_PATH_STATS_PERIODIC_CAL_TYPE_NOISE_FLOOR    = 0,
-    WMI_CTRL_PATH_STATS_PERIODIC_CAL_TYPE_DPD_MEMORYLESS = 1,
-    WMI_CTRL_PATH_STATS_PERIODIC_CAL_TYPE_DPD_MEMORY     = 2,
-} wmi_ctrl_path_stats_periodic_cal_type_ids;
-
-/*
- * Used by some hosts to print names of cal profile, based on
- * wmi_ctrl_path_cal_profile_ids values specified in
- * wmi_ctrl_path_calibration_stats_struct in ctrl_path_stats event msg.
- */
-static INLINE
-A_UINT8 *wmi_ctrl_path_cal_profile_id_to_name(A_UINT32 cal_profile_id)
-{
-    switch (cal_profile_id)
-    {
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_PROFILE_COLD_BOOT_CAL);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_PROFILE_FULL_CHAN_SWITCH);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_PROFILE_SCAN_CHAN_SWITCH);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_PROFILE_DPD_SPLIT_CAL);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_PROFILE_TEMP_TRIGEER_CAL);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_PROFILE_POWER_SAVE_WAKE_UP);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_PROFILE_TIMER_TRIGGER_CAL);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_PROFILE_FTM_TRIGGER_CAL);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_PROFILE_AGILE_OR_POWER_DOWN_DTIM);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_PROFILE_NOISY_ENV_RXDO);
-    }
-
-    return (A_UINT8 *) "WMI_CTRL_PATH_STATS_CAL_PROFILE_UNKNOWN";
-}
-
-/*
- * Used by some hosts to print names of cal type, based on
- * wmi_ctrl_path_cal_type_ids values specified in
- * wmi_ctrl_path_calibration_stats_struct in ctrl_path_stats event msg.
- */
-static INLINE A_UINT8 *wmi_ctrl_path_cal_type_id_to_name(A_UINT32 cal_type_id)
-{
-    switch (cal_type_id)
-    {
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_ADC);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_DAC);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_PROCESS);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_NOISE_FLOOR);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_RXDCO);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_COMB_TXLO_TXIQ_RXIQ);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_TXLO);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_TXIQ);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_RXIQ);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_IM2);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_LNA);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_DPD_LP_RXDCO);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_DPD_LP_RXIQ);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_DPD_MEMORYLESS);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_DPD_MEMORY);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_IBF);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_PDET_AND_PAL);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_RXDCO_IQ);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_RXDCO_DTIM);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_TPC_CAL);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_DPD_TIMEREQ);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_BWFILTER);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_PEF);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_PADROOP);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_CAL_TYPE_SELFCALTPC);
-    }
-
-    return (A_UINT8 *) "WMI_CTRL_PATH_STATS_CAL_TYPE_UNKNOWN";
-}
-
-/*
- * Used by some hosts to print names of peridodic cal type, based on
- * wmi_ctrl_path_periodic_cal_type_ids values specified in
- * wmi_ctrl_path_calibration_stats_struct in ctrl_path_stats event msg.
- */
-static INLINE A_UINT8 *wmi_ctrl_path_periodic_cal_type_id_to_name(A_UINT32 periodic_cal_type_id)
-{
-    switch (periodic_cal_type_id)
-    {
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_PERIODIC_CAL_TYPE_NOISE_FLOOR);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_PERIODIC_CAL_TYPE_DPD_MEMORYLESS);
-        WMI_RETURN_STRING(WMI_CTRL_PATH_STATS_PERIODIC_CAL_TYPE_DPD_MEMORY);
-    }
-
-    return (A_UINT8 *) "WMI_CTRL_PATH_STATS_PERIODIC_CAL_TYPE_UNKNOWN";
-}
-
-typedef struct {
-    /** TLV tag and len; tag equals
-     *  WMITLV_TAG_STRUC_wmi_ctrl_path_calibration_stats_struct*/
-    A_UINT32 tlv_header;
-    /** pdev_id for identifying the MAC/PHY */
-    A_UINT32 pdev_id;
-    /** Bit 0 - 7  : cal type / periodic cal type
-      *              These bits hold either a wmi_ctrl_path_stats_cal_type_ids
-      *              value for generic cal (if bit 13 is cleared) or a
-      *              wmi_ctrl_path_stats_periodic_cal_type_ids value for
-      *              periodic cal (if bit 13 is set).
-      *              Signifies the type of calibration
-      *              cal_type       : 8
-      * Bit 8 - 12 : These bits hold a wmi_ctrl_path_stats_cal_profile_ids value.
-      *              Signifies the type of cal profile
-      *              cal_profile     : 5
-      * Bit 13     : Signifies whether stats is for generic cal or periodic cal
-      *              is_cal_periodic : 1
-      *              0 -> generic cal
-      *              1 -> periodic cal
-      * Bit 14 - 31: Reserved for future
-      */
-    A_UINT32 cal_info;
-    A_UINT32 cal_triggered_cnt;   /* Count of number of times calibration triggered */
-    A_UINT32 cal_fail_cnt;        /* Count of number of times calibration failed */
-    A_UINT32 cal_fcs_cnt;         /* Count of number of times FCS done for cal */
-    A_UINT32 cal_fcs_fail_cnt;    /* Count of number of times FCS failed for cal */
-} wmi_ctrl_path_calibration_stats_struct;
-
-#define WMI_CTRL_PATH_CALIBRATION_STATS_CAL_TYPE_GET(value)             WMI_GET_BITS(value, 0, 8)
-#define WMI_CTRL_PATH_CALIBRATION_STATS_CAL_TYPE_SET(value, cal_type)   WMI_SET_BITS(value, 0, 8, cal_type)
-
-#define WMI_CTRL_PATH_CALIBRATION_STATS_CAL_PROFILE_GET(value)              WMI_GET_BITS(value, 8, 5)
-#define WMI_CTRL_PATH_CALIBRATION_STATS_CAL_PROFILE_SET(value, cal_profile) WMI_SET_BITS(value, 8, 5, cal_profile)
-
-#define WMI_CTRL_PATH_CALIBRATION_STATS_IS_PERIODIC_CAL_GET(value)              WMI_GET_BITS(value, 13, 1)
-#define WMI_CTRL_PATH_CALIBRATION_STATS_IS_PERIODIC_CAL_SET(value, is_periodic) WMI_SET_BITS(value, 13, 1, is_periodic)
-
 typedef struct {
     /** TLV tag and len; tag equals
     *  WMITLV_TAG_STRUC_wmi_ctrl_path_stats_event_fixed_param */
     A_UINT32 tlv_header;
-    /** Request ID */
+    /** Request ID*/
     A_UINT32 request_id;
     /** more flag
      *  1 - More events sent after this event.
      *  0 - no more events after this event.
      */
     A_UINT32 more;
-    /** status:
-     * The status field's value shows whether the WMI_REQUEST_CTRL_PATH_STATS
-     * request was completed successfully,
-     *     0 - status is success
-     *     1 - status is failure
-     */
-    A_UINT32 status;
     /** This TLV is (optionally) followed by TLV arrays containing
      *  different types of stats:
      *  1.  wmi_ctrl_path_pdev_stats_struct ctrl_path_pdev_stats[];
      *      This TLV array contains zero or more pdev stats instances.
-     *  2.  wmi_vdev_extd_stats vdev_extd_stats[];
-     *      This TLV array contains zero or more vdev_extd_stats instances.
      */
 } wmi_ctrl_path_stats_event_fixed_param;
 
@@ -10637,8 +10393,6 @@ typedef struct {
     A_UINT32 tlv_header; /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_vdev_stop_cmd_fixed_param */
     /** unique id identifying the VDEV, generated by the caller */
     A_UINT32 vdev_id;
-    /** flags - this is a bitwise-or combination of WMI_VDEV_UP_FLAGS values */
-    A_UINT32 flags;
 } wmi_vdev_stop_cmd_fixed_param;
 
 typedef struct {
@@ -11564,7 +11318,7 @@ typedef enum {
      * take effect if the WMI_PDEV_PARAM_SET_CMD_OBSS_PD_THRESHOLD
      * setting is also set for the pdev that the vdev belongs to.
      */
-    WMI_VDEV_PARAM_SET_CMD_OBSS_PD_THRESHOLD,
+    WMI_VDEV_PARAM_SET_CMD_OBSS_PD_THRESHOLD, /* 0x9E */
 
     /* Parameter used to configure OBSS Packet Detection per Access Category
      * for SRP based and OBSS_PD based spatial reuse feature.
@@ -11588,7 +11342,14 @@ typedef enum {
      * if the WMI_PDEV_PARAM_SET_CMD_OBSS_PD_PER_AC setting is also set for
      * the pdev that the vdev belongs to.
      */
-    WMI_VDEV_PARAM_SET_CMD_OBSS_PD_PER_AC,
+    WMI_VDEV_PARAM_SET_CMD_OBSS_PD_PER_AC, /* 0x9F */
+
+    /**
+     * VDEV parameter to indicate RSN (Robust Security Network) capability.
+     * This value will be intersection of the local vdev's (STA's)
+     * RSN capability and the peer's (AP's) RSN capability.
+     */
+    WMI_VDEV_PARAM_RSN_CAPABILITY, /* 0xA0 */
 
     /* Parameter used to enable/disable SRP feature */
     WMI_VDEV_PARAM_ENABLE_SRP,
@@ -19875,6 +19636,13 @@ typedef struct {
      */
 } wmi_nan_dmesg_event_fixed_param;
 
+typedef struct {
+    /** TLV tag and len; tag equals WMITLV_TAG_STRUCT_wmi_nan_capabilities */
+    A_UINT32 tlv_header;
+    /** Maximum number of ndp sessions supported by the Firmware */
+    A_UINT32 max_ndp_sessions;
+} wmi_nan_capabilities;
+
 /** NAN DATA CMD's */
 
 /**
@@ -25540,13 +25308,9 @@ typedef struct {
 typedef enum {
     /*
      * Multiple stats type can be requested together, so each value
-     * within this enum represents a bit position within a stats bitmap.
+     * within this enum represents a bit within a stats bitmap.
      */
-    /* bit 0 is currently unused / reserved */
-    WMI_REQUEST_CTRL_PATH_PDEV_TX_STAT   = 1,
-    WMI_REQUEST_CTRL_PATH_VDEV_EXTD_STAT = 2,
-    WMI_REQUEST_CTRL_PATH_MEM_STAT       = 3,
-    WMI_REQUEST_CTRL_PATH_TWT_STAT       = 4,
+    WMI_REQUEST_CTRL_PATH_PDEV_TX_STAT = 0x00000001,
 } wmi_ctrl_path_stats_id;
 
 typedef enum {
@@ -27131,6 +26895,8 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_ANT_CONTROLLER_CMDID);
         WMI_RETURN_STRING(WMI_SIMULATION_TEST_CMDID);
         WMI_RETURN_STRING(WMI_AUDIO_AGGR_SET_RTSCTS_CONFIG_CMDID);
+        WMI_RETURN_STRING(WMI_REQUEST_CTRL_PATH_STATS_CMDID);
+        WMI_RETURN_STRING(WMI_PDEV_GET_TPC_STATS_CMDID);
     }
 
     return "Invalid WMI cmd";
