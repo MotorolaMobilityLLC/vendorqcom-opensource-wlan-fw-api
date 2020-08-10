@@ -4362,6 +4362,9 @@ typedef enum {
 /* Force broadcast address in RA even though specified bssid */
 #define WMI_SCAN_FLAG_EXT_FORCE_BRCAST_RA             0x00000200
 
+/* Extend 6ghz channel measure time */
+#define WMI_SCAN_FLAG_EXT_6GHZ_EXTEND_MEASURE_TIME    0x00000400
+
 /**
  * new 6 GHz flags per chan (short ssid or bssid) in struct
  * wmi_hint_freq_short_ssid or wmi_hint_freq_bssid
@@ -7829,22 +7832,23 @@ typedef struct {
 } wmi_pdev_set_wmm_params_cmd_fixed_param;
 
 typedef enum {
-    WMI_REQUEST_PEER_STAT            = 0x0001,
-    WMI_REQUEST_AP_STAT              = 0x0002,
-    WMI_REQUEST_PDEV_STAT            = 0x0004,
-    WMI_REQUEST_VDEV_STAT            = 0x0008,
-    WMI_REQUEST_BCNFLT_STAT          = 0x0010,
-    WMI_REQUEST_VDEV_RATE_STAT       = 0x0020,
-    WMI_REQUEST_INST_STAT            = 0x0040,
-    WMI_REQUEST_MIB_STAT             = 0x0080,
-    WMI_REQUEST_RSSI_PER_CHAIN_STAT  = 0x0100,
-    WMI_REQUEST_CONGESTION_STAT      = 0x0200,
-    WMI_REQUEST_PEER_EXTD_STAT       = 0x0400,
-    WMI_REQUEST_BCN_STAT             = 0x0800,
-    WMI_REQUEST_BCN_STAT_RESET       = 0x1000,
-    WMI_REQUEST_PEER_EXTD2_STAT      = 0x2000,
-    WMI_REQUEST_MIB_EXTD_STAT        = 0x4000,
-    WMI_REQUEST_PMF_BCN_PROTECT_STAT = 0x8000,
+    WMI_REQUEST_PEER_STAT            = 0x00001,
+    WMI_REQUEST_AP_STAT              = 0x00002,
+    WMI_REQUEST_PDEV_STAT            = 0x00004,
+    WMI_REQUEST_VDEV_STAT            = 0x00008,
+    WMI_REQUEST_BCNFLT_STAT          = 0x00010,
+    WMI_REQUEST_VDEV_RATE_STAT       = 0x00020,
+    WMI_REQUEST_INST_STAT            = 0x00040,
+    WMI_REQUEST_MIB_STAT             = 0x00080,
+    WMI_REQUEST_RSSI_PER_CHAIN_STAT  = 0x00100,
+    WMI_REQUEST_CONGESTION_STAT      = 0x00200,
+    WMI_REQUEST_PEER_EXTD_STAT       = 0x00400,
+    WMI_REQUEST_BCN_STAT             = 0x00800,
+    WMI_REQUEST_BCN_STAT_RESET       = 0x01000,
+    WMI_REQUEST_PEER_EXTD2_STAT      = 0x02000,
+    WMI_REQUEST_MIB_EXTD_STAT        = 0x04000,
+    WMI_REQUEST_PMF_BCN_PROTECT_STAT = 0x08000,
+    WMI_REQUEST_VDEV_EXTD_STAT       = 0x10000,
 } wmi_stats_id;
 
 /*
@@ -8129,12 +8133,6 @@ typedef struct {
     A_UINT32 tx_time;
     /** msecs the radio is in active receive (32 bits number accruing over time) */
     A_UINT32 rx_time;
-    /*** NOTE ***
-     * Be cautious about adding new fields in wmi_channel_stats.
-     * STA-centric targets may instantiate many instances of per-channel
-     * stats, and consequently may consume a non-trivial amount of on-chip
-     * memory for storing the channel stats.
-     */
 } wmi_channel_stats;
 
 /*
@@ -8609,6 +8607,10 @@ typedef struct {
  */
 /* If WMI_REQUEST_PMF_BCN_PROTECT_STAT is set in stats_id, then TLV
  * wmi_pmf_bcn_protect_stats pmf_bcn_protect_stats[]
+ * follows the other TLVs
+ */
+/* If WMI_REQUEST_VDEV_EXTD_STAT is set in stats_id, then TLV
+ * wmi_vdev_extd_stats wmi_vdev_extd_stats[]
  * follows the other TLVs
  */
 } wmi_stats_event_fixed_param;
@@ -9235,6 +9237,8 @@ typedef struct {
      *  different types of stats:
      *  1.  wmi_ctrl_path_pdev_stats_struct ctrl_path_pdev_stats[];
      *      This TLV array contains zero or more pdev stats instances.
+     *  2.  wmi_vdev_extd_stats vdev_extd_stats[];
+     *      This TLV array contains zero or more vdev_extd_stats instances.
      */
 } wmi_ctrl_path_stats_event_fixed_param;
 
@@ -13348,20 +13352,6 @@ enum WMI_PEER_STA_TYPE {
 #define WMI_PEER_STA_TYPE_GET(dword)        WMI_GET_BITS(dword, 0, 8)
 #define WMI_PEER_STA_TYPE_SET(dword, value) WMI_SET_BITS(dword, 0, 8, value)
 
-#define WMI_PEER_ASSOC_BSS_MAX_IDLE_OPTION_BITPOS  (0)
-#define WMI_PEER_ASSOC_BSS_MAX_IDLE_OPTION_MASK    (0x1 << WMI_PEER_ASSOC_BSS_MAX_IDLE_OPTION_BITPOS)
-#define WMI_PEER_ASSOC_SET_BSS_MAX_IDLE_OPTION(_dword, _val) \
-    WMI_SET_BITS(_dword, WMI_PEER_ASSOC_BSS_MAX_IDLE_OPTION_BITPOS, 1, _val)
-#define WMI_PEER_ASSOC_GET_BSS_MAX_IDLE_OPTION(_dword) \
-    WMI_GET_BITS(_dword, WMI_PEER_ASSOC_BSS_MAX_IDLE_OPTION_BITPOS, 1)
-
-#define WMI_PEER_ASSOC_BSS_MAX_IDLE_PERIOD_BITPOS  (16)
-#define WMI_PEER_ASSOC_BSS_MAX_IDLE_PERIOD_MASK    (0xFFFF << WMI_PEER_ASSOC_BSS_MAX_IDLE_PERIOD_BITPOS)
-#define WMI_PEER_ASSOC_SET_BSS_MAX_IDLE_PERIOD(_dword, _val) \
-    WMI_SET_BITS(_dword, WMI_PEER_ASSOC_BSS_MAX_IDLE_PERIOD_BITPOS, 16, _val)
-#define WMI_PEER_ASSOC_GET_BSS_MAX_IDLE_PERIOD(_dword) \
-    WMI_GET_BITS(_dword, WMI_PEER_ASSOC_BSS_MAX_IDLE_PERIOD_BITPOS, 16)
-
 typedef struct {
     A_UINT32 tlv_header; /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_peer_assoc_complete_cmd_fixed_param */
     /** peer MAC address */
@@ -13451,6 +13441,13 @@ typedef struct {
      * valid when WMI_PEER_HE is set and WMI_PEER_VHT/HT are not set.
      */
     A_UINT32 peer_he_caps_6ghz;
+
+    /* bit[0-7] : sta_type
+     * bit[8-31]: reserved
+     * Refer to enum WMI_PEER_STA_TYPE for sta_type values.
+     * Refer to WMI_PEER_STA_TYPE_GET/SET macros.
+     */
+    A_UINT32 sta_type;
 
 /* Following this struct are the TLV's:
  *     A_UINT8 peer_legacy_rates[];
@@ -14698,6 +14695,18 @@ typedef struct {
     A_UINT32 timeout;
     /** rssi (dBm units) when put in blacklist */
     A_INT32 rssi;
+    /* Blacklist reason from WMI_BLACKLIST_REASON_ID */
+    A_UINT32 reason;
+    /* Source of adding AP to BL from WMI_BLACKLIST_SOURCE_ID */
+    A_UINT32 source;
+    /*
+     * timestamp is the absolute time w.r.t host timer which is synchronized
+     * between the host and target.
+     * This timestamp indicates the time when AP added to blacklist.
+     */
+    A_UINT32 timestamp;
+    /* Original timeout value in milli seconds when AP added to BL */
+    A_UINT32 original_timeout;
 } wmi_roam_blacklist_with_timeout_tlv_param;
 
 /** WMI_ROAM_BLACKLIST_EVENT: generated whenever STA needs to move AP to blacklist for a particluar time
@@ -16348,6 +16357,10 @@ typedef enum {
      * due to CSA in OCV enabled case.
      */
     WLAN_DISCONNECT_REASON_CSA_SA_QUERY_TIMEOUT = 1,
+    /* MOVE_TO_CELLULAR:
+     * Disconnect from WiFi to move to cellular
+     */
+    WLAN_DISCONNECT_REASON_MOVE_TO_CELLULAR,
 } WMI_VDEV_DISCONNECT_REASON_ID;
 
 typedef struct {
@@ -28754,6 +28767,9 @@ typedef struct {
 typedef enum {
     WMI_ROAM_TRIGGER_SUB_REASON_PERIODIC_TIMER = 1, /* Roam scan triggered due to periodic timer expiry */
     WMI_ROAM_TRIGGER_SUB_REASON_INACTIVITY_TIMER,   /* Roam scan triggered due to inactivity detection */
+    /* INACTIVITY_TIMER_LOW_RSSI - alias for INACTIVITY_TIMER */
+    WMI_ROAM_TRIGGER_SUB_REASON_INACTIVITY_TIMER_LOW_RSSI =
+        WMI_ROAM_TRIGGER_SUB_REASON_INACTIVITY_TIMER,
     WMI_ROAM_TRIGGER_SUB_REASON_BTM_DI_TIMER,       /* Roam scan triggered due to BTM Disassoc Imminent timeout */
     WMI_ROAM_TRIGGER_SUB_REASON_FULL_SCAN,          /* Roam scan triggered due to partial scan failure */
     WMI_ROAM_TRIGGER_SUB_REASON_LOW_RSSI_PERIODIC,  /* Roam scan triggered due to Low rssi periodic timer */
@@ -28764,6 +28780,16 @@ typedef enum {
      * This timer is enabled/used for roaming in a vendor-specific manner.
      */
     WMI_ROAM_TRIGGER_SUB_REASCON_PERIODIC_TIMER_AFTER_INACTIVITY,
+    WMI_ROAM_TRIGGER_SUB_REASON_PERIODIC_TIMER_AFTER_INACTIVITY =
+        WMI_ROAM_TRIGGER_SUB_REASCON_PERIODIC_TIMER_AFTER_INACTIVITY,
+    /*
+     * PERIODIC_TIMER_AFTER_INACTIVITY_LOW_RSSI - alias for
+     * PERIODIC_TIMER_AFTER_INACTIVITY
+     */
+    WMI_ROAM_TRIGGER_SUB_REASON_PERIODIC_TIMER_AFTER_INACTIVITY_LOW_RSSI =
+        WMI_ROAM_TRIGGER_SUB_REASON_PERIODIC_TIMER_AFTER_INACTIVITY,
+    WMI_ROAM_TRIGGER_SUB_REASON_PERIODIC_TIMER_AFTER_INACTIVITY_CU,
+    WMI_ROAM_TRIGGER_SUB_REASON_INACTIVITY_TIMER_CU,
 } WMI_ROAM_TRIGGER_SUB_REASON_ID;
 
 typedef enum wmi_roam_invoke_status_error {
@@ -28852,6 +28878,10 @@ typedef struct {
             A_UINT32 vendor_specific1[7];
         };
     };
+    /* BTM BSS termination timeout value in milli seconds */
+    A_UINT32 btm_bss_termination_timeout;
+    /* BTM MBO assoc retry timeout value in milli seconds */
+    A_UINT32 btm_mbo_assoc_retry_timeout;
 } wmi_roam_trigger_reason;
 
 typedef struct {
@@ -28898,6 +28928,18 @@ typedef struct {
     A_UINT32 cu_score;       /* AP current cu score */
     A_UINT32 total_score;    /* AP total score */
     A_UINT32 etp;            /* AP Estimated Throughput (ETP) value in mbps */
+    /* Blacklist reason from WMI_BLACKLIST_REASON_ID */
+    A_UINT32 bl_reason;
+    /* Source of adding AP to BL from WMI_BLACKLIST_SOURCE_ID */
+    A_UINT32 bl_source;
+    /*
+     * timestamp is the absolute time w.r.t host timer which is synchronized
+     * between the host and target.
+     * This timestamp indicates the time when AP added to blacklist.
+     */
+    A_UINT32 bl_timestamp;
+    /* Original timeout value in milli seconds when AP added to BL */
+    A_UINT32 bl_original_timeout;
 } wmi_roam_ap_info;
 
 typedef enum {
@@ -28996,6 +29038,12 @@ typedef struct {
      *  0x08-0xFF    TBD
      */
     A_UINT32 vsie_reason;
+    /*
+     * timestamp is the absolute time w.r.t host timer which is synchronized
+     * between the host and target.
+     * This timestamp indicates the time when btm response is sent.
+     */
+    A_UINT32 timestamp; /* milli second units */
 } wmi_roam_btm_response_info;
 
 typedef struct {
@@ -31255,6 +31303,7 @@ typedef struct {
 #define WMI_CFR_NDPA_NDP_ALL_EN_BIT_POS               3
 #define WMI_CFR_TA_RA_TYPE_FILTER_EN_BIT_POS          4
 #define WMI_CFR_ALL_PACKET_EN_BIT_POS                 5
+#define WMI_CFR_FILTER_IN_AS_FP_TA_RA_TYPE_BIT_POS    6
 
 #define WMI_CFR_CAPTURE_INTERVAL_NUM_BITS             24
 #define WMI_CFR_CAPTURE_INTERVAL_BIT_POS              0
@@ -31273,6 +31322,14 @@ typedef struct {
 
 #define WMI_CFR_FREEZE_DELAY_CNT_THR_NUM_BITS         8
 #define WMI_CFR_FREEZE_DELAY_CNT_THR_BIT_POS          1
+
+
+#define WMI_CFR_CAPTURE_COUNT_NUM_BITS                16
+#define WMI_CFR_CAPTURE_COUNT_BIT_POS                 0
+
+#define WMI_CFR_CAPTURE_INTERVAL_MODE_SEL_NUM_BITS    1
+#define WMI_CFR_CAPTURE_INTERVAL_MODE_SEL_BIT_POS     16
+
 
 #define WMI_CFR_DIRECTED_FTM_ACK_EN_SET(param, value) \
     WMI_SET_BITS(param, WMI_CFR_DIRECTED_FTM_ACK_EN_BIT_POS, 1, value)
@@ -31312,6 +31369,12 @@ typedef struct {
 #define WMI_CFR_ALL_PACKET_EN_GET(param)     \
     WMI_GET_BITS(param, WMI_CFR_ALL_PACKET_EN_BIT_POS, 1)
 
+#define WMI_CFR_FILTER_IN_AS_FP_TA_RA_TYPE_SET(param, value)  \
+    WMI_SET_BITS(param, WMI_CFR_FILTER_IN_AS_FP_TA_RA_TYPE_BIT_POS, 1, value)
+
+#define WMI_CFR_FILTER_IN_AS_FP_TA_RA_TYPE_GET(param)  \
+    WMI_GET_BITS(param, WMI_CFR_FILTER_IN_AS_FP_TA_RA_TYPE_BIT_POS, 1)
+
 #define WMI_CFR_CAPTURE_INTERVAL_SET(param, value) \
     WMI_SET_BITS(param, WMI_CFR_CAPTURE_INTERVAL_BIT_POS, WMI_CFR_CAPTURE_INTERVAL_NUM_BITS, value)
 
@@ -31348,6 +31411,18 @@ typedef struct {
 #define WMI_CFR_FREEZE_DELAY_CNT_THR_GET(param)     \
     WMI_GET_BITS(param, WMI_CFR_FREEZE_DELAY_CNT_THR_BIT_POS, WMI_CFR_FREEZE_DELAY_CNT_THR_NUM_BITS)
 
+#define WMI_CFR_CAPTURE_COUNT_SET(param, value) \
+    WMI_SET_BITS(param, WMI_CFR_CAPTURE_COUNT_BIT_POS, WMI_CFR_CAPTURE_COUNT_NUM_BITS, value)
+
+#define WMI_CFR_CAPTURE_COUNT_GET(param)     \
+    WMI_GET_BITS(param, WMI_CFR_CAPTURE_COUNT_BIT_POS, WMI_CFR_CAPTURE_COUNT_NUM_BITS)
+
+#define WMI_CFR_CAPTURE_INTERVAL_MODE_SEL_SET(param, value) \
+    WMI_SET_BITS(param, WMI_CFR_CAPTURE_INTERVAL_MODE_SEL_BIT_POS, WMI_CFR_CAPTURE_INTERVAL_MODE_SEL_NUM_BITS, value)
+
+#define WMI_CFR_CAPTURE_INTERVAL_MODE_SEL_GET(param)     \
+    WMI_GET_BITS(param, WMI_CFR_CAPTURE_INTERVAL_MODE_SEL_BIT_POS, WMI_CFR_CAPTURE_INTERVAL_MODE_SEL_NUM_BITS)
+
 typedef struct {
    /** TLV tag and len; tag equals
     * WMITLV_TAG_STRUC_wmi_peer_cfr_capture_filter_cmd_fixed_param */
@@ -31362,10 +31437,12 @@ typedef struct {
      * Bit 0:    Filter Directed FTM ACK frames for CFR capture
      * Bit 1:    Filter All FTM ACK frames for CFR capture
      * Bit 2:    Filter NDPA NDP Directed Frames for CFR capture
-     * Bit 3:    Filter Frames based on TA/RA/Subtype as provided
+     * Bit 3:    Filter NDPA NDP All Frames for CFR capture
+     * Bit 4:    Filter Frames based on TA/RA/Subtype as provided
      *           in CFR Group config
-     * Bit 4:    Filter in All packets for CFR Capture
-     * Bits 31:5 Reserved for future use
+     * Bit 5:    Filter in All packets for CFR Capture
+     * Bit 6:    Filter in TA/RA frames as FP if this bit is set else as MO
+     * Bits 31:7 Reserved for future use
      */
     A_UINT32 filter_type;
     /* capture_interval:
@@ -31413,6 +31490,25 @@ typedef struct {
      * Bits 31:9  Reserved for future use
      */
     A_UINT32 freeze_tlv_delay_cnt;
+
+    /* capture_count:
+     * Indicates the number of consecutive packets for which CFR capture
+     * is to be enabled.
+     * Interpretation of capture_interval_mode_select (bit 16):
+     *     Value 0: capture_interval + capture_duration fields are used
+     *              to capture CFR for capture_duration after every
+     *              capture_interval.
+     *     Value 1: capture_interval + capture_count fields are used to
+     *              capture CFR for capture_count+1 number of packets
+     *              after every capture interval
+     * Bit 15:0   : capture_count
+     *              Refer to WMI_CFR_CAPTURE_COUNT_GET/SET macros.
+     * Bit 16     : capture_interval_mode_select
+     *              Refer to WMI_CFR_CAPTURE_INTERVAL_MODE_SEL_GET/SET macros.
+     * Bits 31:17 : Reserved
+     */
+    A_UINT32 capture_count;
+
 /*
  * A variable-length TLV array of wmi_cfr_filter_group_config will
  * follow this fixed_param TLV
@@ -31892,6 +31988,12 @@ typedef struct {
 #define WMI_TWT_SESSION_FLAG_ANNOUN_TWT_GET(_var) WMI_GET_BITS(_var, 18, 1)
 #define WMI_TWT_SESSION_FLAG_ANNOUN_TWT_SET(_var, _val) WMI_SET_BITS(_var, 18, 1, _val)
 
+#define WMI_TWT_SESSION_FLAG_TWT_PROTECTION_GET(_var) WMI_GET_BITS(_var, 19, 1)
+#define WMI_TWT_SESSION_FLAG_TWT_PROTECTION_SET(_var, _val) WMI_SET_BITS(_var, 19, 1, _val)
+
+#define WMI_TWT_SESSION_FLAG_TWT_INFO_FRAME_DISABLED_GET(_var) WMI_GET_BITS(_var, 20, 1)
+#define WMI_TWT_SESSION_FLAG_TWT_INFO_FRAME_DISABLED_SET(_var, _val) WMI_SET_BITS(_var, 20, 1, _val)
+
 typedef struct {
     /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_twt_session_stats_info */
     A_UINT32 tlv_hdr;
@@ -31910,6 +32012,9 @@ typedef struct {
     A_UINT32     wake_intvl_us;
     /* this long time after TWT resumed the 1st Service Period will start */
     A_UINT32     sp_offset_us;
+    /* service period start TSF */
+    A_UINT32     sp_tsf_us_lo; /* bits 31:0 */
+    A_UINT32     sp_tsf_us_hi; /* bits 63:32 */
 } wmi_twt_session_stats_info;
 
 enum wmi_twt_session_stats_type {
