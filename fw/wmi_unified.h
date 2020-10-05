@@ -3741,7 +3741,18 @@ typedef struct {
      *
      *      Refer to WMI_RSRC_CFG_HOST_SERVICE_FLAG_NAN_IFACE_SUPPORT_GET/SET
      *      macros defined below.
-     *  Bits 31:1 - Reserved
+     *  Bit 1
+     *      The bit will be set when HOST is capable of processing multiple
+     *      radio events per radio. More specifically whenever Firmware is
+     *      sending multiple radio events (WMI_RADIO_LINK_STATS_EVENTID
+     *      = 0x16004) for a single radio,
+     *      Through this flag Firmware will know that HOST is able to support
+     *      delivery of RADIO_LINK_STATS across multiple event messages,
+     *      and Firmware can send multiple radio events.
+     *
+     *      Refer to WMI_RSRC_CFG_HOST_SERVICE_FLAG_HOST_SUPPORT_MULTI_RADIO_EVTS_PER_RADIO_GET/SET
+     *      macros defined below.
+     *  Bits 31:2 - Reserved
      */
     A_UINT32 host_service_flags;
 
@@ -3999,6 +4010,11 @@ typedef struct {
     WMI_GET_BITS(host_service_flags, 0, 1)
 #define WMI_RSRC_CFG_HOST_SERVICE_FLAG_NAN_IFACE_SUPPORT_SET(host_service_flags, val) \
     WMI_SET_BITS(host_service_flags, 0, 1, val)
+
+#define WMI_RSRC_CFG_HOST_SERVICE_FLAG_HOST_SUPPORT_MULTI_RADIO_EVTS_PER_RADIO_GET(host_service_flags) \
+    WMI_GET_BITS(host_service_flags, 1, 1)
+#define WMI_RSRC_CFG_HOST_SERVICE_FLAG_HOST_SUPPORT_MULTI_RADIO_EVTS_PER_RADIO_SET(host_service_flags, val) \
+    WMI_SET_BITS(host_service_flags, 1, 1, val)
 
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_init_cmd_fixed_param */
