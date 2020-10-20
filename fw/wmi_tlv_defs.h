@@ -1108,6 +1108,10 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_wfa_config_saquery,
     WMITLV_TAG_STRUC_wmi_roam_data_rssi_roaming_param,
     WMITLV_TAG_STRUC_wmi_request_unified_ll_get_sta_cmd_fixed_param,
+    WMITLV_TAG_STRUC_wmi_sscan_evt_message_fixed_param,
+    WMITLV_TAG_STRUC_wmi_qos_null_frame_tx_send_cmd_fixed_param,
+    WMITLV_TAG_STRUC_wmi_qos_null_frame_tx_compl_event_fixed_param,
+    WMITLV_TAG_STRUC_wmi_pdev_enable_duration_based_tx_mode_selection_cmd_fixed_param,
 } WMITLV_TAG_ID;
 
 /*
@@ -1558,6 +1562,8 @@ typedef enum {
     OP(WMI_AUDIO_AGGR_GET_SCHED_METHOD_CMDID) \
     OP(WMI_WFA_CONFIG_CMDID) \
     OP(WMI_REQUEST_UNIFIED_LL_GET_STA_CMDID) \
+    OP(WMI_QOS_NULL_FRAME_TX_SEND_CMDID) \
+    OP(WMI_PDEV_ENABLE_DURATION_BASED_TX_MODE_SELECTION_CMDID) \
     /* add new CMD_LIST elements above this line */
 
 
@@ -1814,6 +1820,8 @@ typedef enum {
     OP(WMI_AUDIO_AGGR_SCHED_METHOD_EVENTID) \
     OP(WMI_VDEV_DISCONNECT_EVENTID) \
     OP(WMI_TWT_SESSION_STATS_EVENTID) \
+    OP(WMI_SSCAN_EVT_MESSAGE_EVENTID) \
+    OP(WMI_QOS_NULL_FRAME_TX_COMPLETION_EVENTID) \
     /* add new EVT_LIST elements above this line */
 
 
@@ -4511,6 +4519,11 @@ WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_SET_NON_SRG_OBSS_BSSID_ENABLE_BITMAP_CMDID);
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_get_tpc_stats_cmd_fixed_param, wmi_pdev_get_tpc_stats_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
 WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_GET_TPC_STATS_CMDID);
 
+/* Duration based tx mode selection Enable Bitmap */
+#define WMITLV_TABLE_WMI_PDEV_ENABLE_DURATION_BASED_TX_MODE_SELECTION_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_enable_duration_based_tx_mode_selection_cmd_fixed_param, wmi_pdev_enable_duration_based_tx_mode_selection_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_ENABLE_DURATION_BASED_TX_MODE_SELECTION_CMDID);
+
 
 /************************** TLV definitions of WMI events *******************************/
 
@@ -6074,6 +6087,11 @@ WMITLV_CREATE_PARAM_STRUC(WMI_AUDIO_AGGR_SCHED_METHOD_EVENTID);
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_sscan_fw_cmd_fixed_param, wmi_pdev_sscan_fw_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_pdev_sscan_fft_bin_index, fft_bin_index, WMITLV_SIZE_VAR)
 WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_SSCAN_FW_PARAM_EVENTID);
+
+/* Send sscan related event start/stop trigger to host */
+#define WMITLV_TABLE_WMI_SSCAN_EVT_MESSAGE_EVENTID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_sscan_evt_message_fixed_param, wmi_sscan_evt_message_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_SSCAN_EVT_MESSAGE_EVENTID);
 
 /* Roam capability report event */
 #define WMITLV_TABLE_WMI_ROAM_CAPABILITY_REPORT_EVENTID(id,op,buf,len) \

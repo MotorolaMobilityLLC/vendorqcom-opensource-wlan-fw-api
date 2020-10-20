@@ -441,6 +441,8 @@ typedef enum {
     WMI_PDEV_SET_NON_SRG_OBSS_BSSID_ENABLE_BITMAP_CMDID,
     /** TPC stats display command */
     WMI_PDEV_GET_TPC_STATS_CMDID,
+    /** ENABLE/DISABLE Duration based tx mode selection */
+    WMI_PDEV_ENABLE_DURATION_BASED_TX_MODE_SELECTION_CMDID,
 
     /* VDEV (virtual device) specific commands */
     /** vdev create */
@@ -665,6 +667,8 @@ typedef enum {
     WMI_VDEV_BCN_OFFLOAD_QUIET_CONFIG_CMDID,
     /** set FILS Discovery frame template for FW to generate FD frames */
     WMI_FD_TMPL_CMDID,
+    /** Transmit QoS null Frame over wmi interface */
+    WMI_QOS_NULL_FRAME_TX_SEND_CMDID,
 
     /** commands to directly control ba negotiation directly from host. only used in test mode */
 
@@ -1362,6 +1366,10 @@ typedef enum {
 
     /** Spectral scan FW params to host */
     WMI_PDEV_SSCAN_FW_PARAM_EVENTID,
+
+    /** Spectral scan related event start/stop trigger to host  */
+    WMI_SSCAN_EVT_MESSAGE_EVENTID,
+
 
     /* PDEV specific events */
     /** TPC config for the current operating channel */
@@ -4464,6 +4472,15 @@ typedef enum {
 #define WMI_SCAN_FLAG_EXT_6GHZ_EXTEND_MEASURE_TIME    0x00000400
 
 /**
+ * Currently passive scan has higher priority than beacon and
+ * beacon miss would happen irrespective of dwell time.
+ * Below flag ensures there would not be beacon miss if the dwell
+ * time is lesser than beacon interval - channel switch time combined.
+ * For dwell time greater than beacon interval, bmiss is expected.
+ */
+#define WMI_SCAN_FLAG_EXT_PASSIVE_SCAN_START_TIME_ENHANCE   0x00000800
+
+/**
  * new 6 GHz flags per chan (short ssid or bssid) in struct
  * wmi_hint_freq_short_ssid or wmi_hint_freq_bssid
  */
@@ -6038,6 +6055,28 @@ typedef struct {
      */
     A_UINT32 mid_5mhz_bins;
 } wmi_pdev_sscan_fft_bin_index;
+
+typedef enum {
+    /** Enum to indicate bmsk of spectral scan stop evt on scan count max out */
+    WMI_SSCAN_EVT_BMSK_SCAN_STOP_SCOUNT = 0X00000001,
+
+
+    /** Add more event code bmsks above this */
+    WMI_SSCAN_EVT_BMSK_MAX = 0Xffffffff,
+} wmi_sscan_evt_message_code;
+
+/**
+ * The below structure is used to send the start/stop triggers
+ * for events related to spectral scan activity from
+ * FW to host
+ */
+typedef struct {
+    A_UINT32 tlv_header; /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_sscan_evt_message_fixed_param */
+    A_UINT32 pdev_id;
+
+    /** Refer Enum wmi_sscan_evt_message_code */
+    A_UINT32 sscan_evt_code;
+} wmi_sscan_evt_message_fixed_param;
 
 #define WMI_BEACON_CTRL_TX_DISABLE  0
 #define WMI_BEACON_CTRL_TX_ENABLE   1
@@ -11576,6 +11615,13 @@ typedef enum {
      * param value bitmap set to 1 for enable and 0 for disable respectively
      */
     WMI_VDEV_PARAM_ENABLE_DISABLE_NAN_CONFIG_FEATURES,  /* 0xA3 */
+
+    /* vdev param to enable the SAP HW offload
+     *  Bit : 0     - enable/disable SHO
+     *  Bit : 1     - enable for Sta connected state as well.
+     *  Bit : 2-31  - reserved
+     */
+    WMI_VDEV_PARAM_SHO_CONFIG,          /* 0xA4  */
 
 
     /*=== ADD NEW VDEV PARAM TYPES ABOVE THIS LINE ===
@@ -26455,11 +26501,6 @@ typedef enum {
     WMI_THERMAL_MITIGATION      = 1,
     /* shut down the tx completely */
     WMI_THERMAL_SHUTOFF         = 2,
-    /* THERMAL_SHUTDOWN_TGT
-     * The target is over the temperature limit even with tx shut off.
-     * The target will be shut down entirely to control the temperature.
-     */
-    WMI_THERMAL_SHUTDOWN_TGT    = 3,
 } WMI_THERMAL_THROT_LEVEL;
 
 /** FW response with the stats event id for every pdev and zones */
@@ -27204,6 +27245,8 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_AUDIO_AGGR_SET_SCHED_METHOD_CMDID);
         WMI_RETURN_STRING(WMI_AUDIO_AGGR_GET_SCHED_METHOD_CMDID);
         WMI_RETURN_STRING(WMI_REQUEST_UNIFIED_LL_GET_STA_CMDID);
+        WMI_RETURN_STRING(WMI_QOS_NULL_FRAME_TX_SEND_CMDID);
+        WMI_RETURN_STRING(WMI_PDEV_ENABLE_DURATION_BASED_TX_MODE_SELECTION_CMDID);
     }
 
     return "Invalid WMI cmd";
@@ -30846,17 +30889,6 @@ typedef struct {
     A_UINT32 cfo_measurement_valid :1,
              cfo_measurement :14,
              reserved :17;
-
-    /* RX packet start timestamp.
-     * It reports the time the first L-STF ADC sample arrived at RX antenna
-     * It is in units of 480 MHz clock, i.e. number of clock cycles at 480 MHz.
-     */
-    A_UINT32 rx_start_ts;
-
-    /*
-     * The rx_ts_reset flag will be set to 1 upon every reset of rx_start_ts.
-     */
-    A_UINT32 rx_ts_reset;
 } wmi_peer_cfr_capture_event_fixed_param;
 
 #define WMI_UNIFIED_CHAIN_PHASE_MASK 0x0000ffff
@@ -32083,6 +32115,20 @@ typedef struct {
      */
     A_UINT32 non_srg_obss_en_bssid_bitmap[2];
 } wmi_pdev_non_srg_obss_bssid_enable_bitmap_cmd_fixed_param;
+
+typedef struct {
+    /** TLV tag and len; tag equals
+     * WMITLV_TAG_STRUC_wmi_pdev_enable_duration_based_tx_mode_selection_cmd_fixed_param
+     */
+    A_UINT32 tlv_header;
+    /** pdev_id for identifying the MAC
+     * See macros starting with WMI_PDEV_ID_ for values.
+     * In non-DBDC case host should set it to 0
+     */
+    A_UINT32 pdev_id;
+    /* enable/disable Duration based Tx Mode selection */
+    A_UINT32 duration_based_tx_mode_selection;
+} wmi_pdev_enable_duration_based_tx_mode_selection_cmd_fixed_param;
 
 typedef enum {
     /* Simulation test command types */
