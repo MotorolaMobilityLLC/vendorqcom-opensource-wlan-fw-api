@@ -1115,6 +1115,8 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_regulatory_rule_ext_struct,
     WMITLV_TAG_STRUC_wmi_reg_chan_list_cc_event_ext_fixed_param,
     WMITLV_TAG_STRUC_wmi_ctrl_path_mem_stats_struct,
+    WMITLV_TAG_STRUC_wmi_twt_nudge_dialog_cmd_fixed_param,
+    WMITLV_TAG_STRUC_wmi_twt_nudge_dialog_complete_event_fixed_param,
 } WMITLV_TAG_ID;
 
 /*
@@ -1567,6 +1569,7 @@ typedef enum {
     OP(WMI_REQUEST_UNIFIED_LL_GET_STA_CMDID) \
     OP(WMI_QOS_NULL_FRAME_TX_SEND_CMDID) \
     OP(WMI_PDEV_ENABLE_DURATION_BASED_TX_MODE_SELECTION_CMDID) \
+    OP(WMI_TWT_NUDGE_DIALOG_CMDID) \
     /* add new CMD_LIST elements above this line */
 
 
@@ -1825,6 +1828,7 @@ typedef enum {
     OP(WMI_TWT_SESSION_STATS_EVENTID) \
     OP(WMI_SSCAN_EVT_MESSAGE_EVENTID) \
     OP(WMI_QOS_NULL_FRAME_TX_COMPLETION_EVENTID) \
+    OP(WMI_TWT_NUDGE_DIALOG_COMPLETE_EVENTID) \
     /* add new EVT_LIST elements above this line */
 
 

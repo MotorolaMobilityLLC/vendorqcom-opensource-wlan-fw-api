@@ -2016,6 +2016,7 @@ typedef enum {
     WMI_TWT_BTWT_INVITE_STA_COMPLETE_EVENTID,
     WMI_TWT_BTWT_REMOVE_STA_COMPLETE_EVENTID,
     WMI_TWT_SESSION_STATS_EVENTID,
+    WMI_TWT_NUDGE_DIALOG_COMPLETE_EVENTID,
 
     /** Events in Prototyping phase */
     WMI_NDI_CAP_RSP_EVENTID = WMI_EVT_GRP_START_ID(WMI_GRP_PROTOTYPE),
@@ -27347,6 +27348,7 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_REQUEST_UNIFIED_LL_GET_STA_CMDID);
         WMI_RETURN_STRING(WMI_QOS_NULL_FRAME_TX_SEND_CMDID);
         WMI_RETURN_STRING(WMI_PDEV_ENABLE_DURATION_BASED_TX_MODE_SELECTION_CMDID);
+        WMI_RETURN_STRING(WMI_TWT_NUDGE_DIALOG_CMDID);
     }
 
     return "Invalid WMI cmd";
@@ -28486,8 +28488,6 @@ typedef struct {
     wmi_mac_addr peer_macaddr; /* peer MAC address */
     A_UINT32 dialog_id;     /* TWT dialog ID */
     A_UINT32 status;        /* refer to WMI_NUDGE_TWT_STATUS_T */
-    A_UINT32 sp_tsf_us_lo;  /* SP resume TSF bits 31:0 */
-    A_UINT32 sp_tsf_us_hi;  /* SP resume TSF bits 63:32 */
 } wmi_twt_nudge_dialog_complete_event_fixed_param;
 
 typedef struct {
