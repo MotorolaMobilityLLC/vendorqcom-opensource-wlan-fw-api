@@ -208,9 +208,10 @@
  * 3.84 Add fisa_control_bits_v2 def.
  * 3.85 Add HTT_RX_PEER_META_DATA defs.
  * 3.86 Add HTT_T2H_MSG_TYPE_FSE_CMEM_BASE_SEND def.
+ * 3.87 Add on-chip AST index field to PEER_MAP_V2 msg.
  */
 #define HTT_CURRENT_VERSION_MAJOR 3
-#define HTT_CURRENT_VERSION_MINOR 86
+#define HTT_CURRENT_VERSION_MINOR 87
 
 #define HTT_NUM_TX_FRAG_DESC  1024
 
