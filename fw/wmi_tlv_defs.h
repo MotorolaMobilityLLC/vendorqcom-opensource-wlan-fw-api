@@ -1303,10 +1303,6 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_livedump_request_cmd_fixed_param,
     WMITLV_TAG_STRUC_wmi_livedump_response_event_fixed_param,
     WMITLV_TAG_STRUC_wmi_prb_resp_tmpl_ml_info,
-    WMITLV_TAG_STRUC_wmi_mlo_link_removal_tbtt_count,
-    WMITLV_TAG_STRUC_wmi_mlo_link_removal_tbtt_update,
-    WMITLV_TAG_STRUC_wmi_mlo_link_removal_evt_fixed_param,
-    WMITLV_TAG_STRUC_wmi_mlo_link_removal_cmd_fixed_param,
 } WMITLV_TAG_ID;
 
 /*
