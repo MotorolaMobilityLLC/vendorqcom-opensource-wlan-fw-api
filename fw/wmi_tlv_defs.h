@@ -1307,6 +1307,24 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_mlo_link_removal_tbtt_update,
     WMITLV_TAG_STRUC_wmi_mlo_link_removal_evt_fixed_param,
     WMITLV_TAG_STRUC_wmi_mlo_link_removal_cmd_fixed_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_reason_cmm_tlv_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_rssi_tlv_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_bss_load_tlv_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_deauth_tlv_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_btm_tlv_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_bmiss_tlv_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_dense_tlv_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_force_tlv_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_kickout_tlv_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_per_tlv_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_periodic_tlv_param,
+    WMITLV_TAG_STRUC_wmi_roam_trigger_hi_rssi_tlv_param,
+    WMITLV_TAG_STRUC_wmi_mlo_bcast_t2lm_info,
+    WMITLV_TAG_STRUC_wmi_mlo_ap_vdev_tid_to_link_map_cmd_fixed_param,
+    WMITLV_TAG_STRUC_wmi_mlo_ap_vdev_tid_to_link_map_evt_fixed_param,
+    WMITLV_TAG_STRUC_wmi_mlo_ap_vdev_tid_to_link_map_ie_info,
+    WMITLV_TAG_STRUC_wmi_vdev_set_twt_edca_params_cmd_fixed_param,
+    WMITLV_TAG_STRUC_wmi_pifs_params,
 } WMITLV_TAG_ID;
 
 /*
@@ -1818,6 +1836,8 @@ typedef enum {
     OP(WMI_PDEV_MESH_RX_FILTER_ENABLE_CMDID) \
     OP(WMI_ODD_LIVEDUMP_REQUEST_CMDID) \
     OP(WMI_MLO_LINK_REMOVAL_CMDID) \
+    OP(WMI_MLO_AP_VDEV_TID_TO_LINK_MAP_CMDID) \
+    OP(WMI_VDEV_SET_TWT_EDCA_PARAMS_CMDID) \
     /* add new CMD_LIST elements above this line */
 
 
@@ -3439,6 +3459,13 @@ WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_WMM_DELTS_CMDID);
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vdev_set_wmm_params_cmd_fixed_param, wmi_vdev_set_wmm_params_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
 
 WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_SET_WMM_PARAMS_CMDID);
+
+#define WMITLV_TABLE_WMI_VDEV_SET_TWT_EDCA_PARAMS_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vdev_set_twt_edca_params_cmd_fixed_param, wmi_vdev_set_twt_edca_params_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_wmm_params, wmi_wmm_params, wmm_params, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pifs_params, wmi_pifs_params, pifs_params, WMITLV_SIZE_VAR)
+
+WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_SET_TWT_EDCA_PARAMS_CMDID);
 
 #define WMITLV_TABLE_WMI_VDEV_SET_GTX_PARAMS_CMDID(id,op,buf,len)                                           \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vdev_set_gtx_params_cmd_fixed_param, wmi_vdev_set_gtx_params_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
