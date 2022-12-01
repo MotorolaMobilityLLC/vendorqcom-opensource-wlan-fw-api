@@ -1533,8 +1533,6 @@ typedef enum {
     WMI_MLO_PEER_TID_TO_LINK_MAP_CMDID,
     /** WMI cmd for dynamically deleting a link from a MLD VAP */
     WMI_MLO_LINK_REMOVAL_CMDID,
-    /** WMI cmd used to setup Tid to Link Mapping for a MLO VAP */
-    WMI_MLO_AP_VDEV_TID_TO_LINK_MAP_CMDID,
 
     /** WMI commands specific to Service Aware WiFi (SAWF) */
     /** configure or reconfigure the parameters for a service class */
@@ -2337,8 +2335,6 @@ typedef enum {
     WMI_MLO_TEARDOWN_COMPLETE_EVENTID,
     /* Response event for Link Removal Cmd */
     WMI_MLO_LINK_REMOVAL_EVENTID,
-    /* Response event for WMI_MLO_AP_VDEV_TID_TO_LINK_MAP_CMDID */
-    WMI_MLO_AP_VDEV_TID_TO_LINK_MAP_EVENTID,
 
     /* WMI event specific to Quiet handling */
     WMI_QUIET_HANDLING_EVENTID = WMI_EVT_GRP_START_ID(WMI_GRP_QUIET_OFL),
@@ -32769,7 +32765,6 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_XGAP_ENABLE_CMDID);
         WMI_RETURN_STRING(WMI_PDEV_MESH_RX_FILTER_ENABLE_CMDID);
         WMI_RETURN_STRING(WMI_MLO_LINK_REMOVAL_CMDID);
-        WMI_RETURN_STRING(WMI_MLO_AP_VDEV_TID_TO_LINK_MAP_CMDID);
     }
 
     return (A_UINT8 *) "Invalid WMI cmd";
@@ -35332,9 +35327,9 @@ typedef struct {
     };
     /* btm_req_dialog_token: dialog token number in BTM request frame */
     A_UINT32 btm_req_dialog_token;
-    /* data RSSI in dBm when abort to roam scan */
+    /* data rssi in dBm when abort to roam scan */
     A_UINT32 data_rssi;
-    /* data RSSI threshold in dBm */
+    /* data rssi threshold in dBm */
     A_UINT32 data_rssi_threshold;
     /* rx linkspeed status, 0:good linkspeed, 1:bad */
     A_UINT32 rx_linkspeed_status;
