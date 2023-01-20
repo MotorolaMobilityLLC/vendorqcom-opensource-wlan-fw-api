@@ -3285,6 +3285,11 @@ typedef struct {
 #define WMI_TARGET_CAP_MAX_ML_BSS_NUM_SET(target_cap_flags, value) \
     WMI_SET_BITS(target_cap_flags, 8, 3, value)
 
+#define WMI_TARGET_CAP_CONCURRENCE_SUPPORT_GET(target_cap_flags) \
+    WMI_GET_BITS(target_cap_flags, 11, 2)
+#define WMI_TARGET_CAP_CONCURRENCE_SUPPORT_SET(target_cap_flags, value) \
+    WMI_SET_BITS(target_cap_flags, 11, 2, value)
+
 /*
  * wmi_htt_msdu_idx_to_htt_msdu_qtype GET/SET APIs
  */
@@ -3424,7 +3429,10 @@ typedef struct {
      * Bit 6 - UL MUMIMO Rx support on 6 GHz (AP Mode)
      * Bit 7 - UL MUMIMO Tx support on 6 GHz (STA Mode)
      * Bits 10:8 - max ML BSS number supported, range [0-7]
-     * Bits 31:11 - Reserved
+     * Bits 12:11  concurrence support capability
+     *      Bit11 - [ML-STA + SL-STA]  0: not supported; 1:supported
+     *      Bit12 - [ML-STA + SL-SAP]  0: not supported; 1:supported
+     * Bits 31:13 - Reserved
      */
     A_UINT32 target_cap_flags;
 
@@ -8967,41 +8975,6 @@ typedef enum {
      * based ranging.
      */
     WMI_PDEV_PARAM_RTT_11AZ_RSID_RANGE,
-
-    /*
-     * Disable the indicated DL and UL scheduler for the PDEV.
-     *
-     * This command is not supported in STA mode.
-     *
-     * A value of 1 in a given bit position disables the corresponding mode,
-     * and a value of 0 enables the mode. The WMI_SCHED_MODE_FLAGS enum defines
-     * the bit positions for each mode.
-     *
-     * A single 32 bit value is used to store the following configuration
-     * bitmap.
-     *
-     * This command differs from WMI_VDEV_PARAM_SET_HEMU_MODE and
-     * WMI_VDEV_PARAM_SET_EHT_MU_MODE in that it is intended for use during
-     * normal AP operation, and will never cause a VAP restart or other
-     * capability bit modification. It simply controls the scheduler
-     * behavior.
-     *
-     * bit   | sched mode
-     * ---------------
-     *   0   | DL MU-MIMO
-     *   1   | UL MU-MIMO
-     *   2   | DL OFDMA
-     *   3   | UL OFDMA
-     * 4..31 | RESERVED
-     */
-    WMI_PDEV_PARAM_SET_DISABLED_SCHED_MODES,
-
-    /*
-     * Override default FW behavior and explicitly enable / disable
-     * to allow frames without encryption when no encryption is set.
-     *
-     */
-    WMI_PDEV_PARAM_BYPASS_ENCRYPTION,
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
@@ -35526,8 +35499,6 @@ typedef struct {
     A_UINT32 preauth_status;
     /* AP BSSID for which pre-authentication is completed */
     wmi_mac_addr candidate_ap_bssid;
-    /* AKM suite type (as defined in the IEEE 802.11 spec) */
-    A_UINT32 akm_suite_type;
     /**
      * This fixed_param TLV is followed by the below TLVs:
      *

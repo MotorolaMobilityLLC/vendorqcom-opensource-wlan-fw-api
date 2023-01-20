@@ -1330,14 +1330,6 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_ctrl_path_pmlo_stats_struct,
     WMITLV_TAG_STRUC_wmi_ctrl_path_cfr_stats_struct,
     WMITLV_TAG_STRUC_WMI_COEX_FIX_CHANNEL_CAPABILITIES,
-    WMITLV_TAG_STRUC_wmi_peer_sched_mode_disable_fixed_param,
-    WMITLV_TAG_STRUC_wmi_per_peer_sched_mode_disable,
-    WMITLV_TAG_STRUC_wmi_esl_egid_cmd_fixed_param,
-    WMITLV_TAG_STRUC_wmi_tdma_schedule_request_cmd_fixed_param,
-    WMITLV_TAG_STRUC_wmi_hpa_cmd_fixed_param,
-    WMITLV_TAG_STRUC_wmi_hpa_evt_fixed_param,
-    WMITLV_TAG_STRUC_wmi_pdev_set_tgtr2p_table_cmd_fixed_param,
-    WMITLV_TAG_STRUC_wmi_pdev_set_tgtr2p_table_event_fixed_param,
 } WMITLV_TAG_ID;
 
 /*
