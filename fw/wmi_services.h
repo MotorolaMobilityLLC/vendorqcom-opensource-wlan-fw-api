@@ -607,7 +607,11 @@ typedef  enum  {
     WMI_SERVICE_RESTRICTED_TWT = 354, /* Support for R-TWT feature */
     WMI_SERVICE_SLO_SUPPORTED = 355, /* Support for Single Link 11BE */
     WMI_SERVICE_RTT_11AZ_TB_RSTA_SUPPORT = 356, /* FW support for 11AZ trigger based ranging Responder (RSTA) role */
-
+    WMI_SERVICE_SUPPORT_11D_FOR_HOST_SCAN = 357,
+    WMI_SERVICE_DETERMINISTIC_SCHEDULER_LEVEL0 = 358, /* FW supports 12.2 level scheduler mode disable commands and stats */
+    WMI_SERVICE_COORDINATED_AP_TDMA = 359, /* Support for Coordinated-AP TDMA feature */
+    WMI_SERVICE_HPA_SUPPORT = 360, /* Support for Host Platform Authentication */
+    WMI_SERVICE_WMSK_COMPACTION_RX_TLVS = 361, /* Support word mask subscription for rx tlv compaction */
 
     WMI_MAX_EXT2_SERVICE
 
