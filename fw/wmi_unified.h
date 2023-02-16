@@ -745,8 +745,6 @@ typedef enum {
     /* Set disabled scheduler modes for one or more peers */
     WMI_PEER_SCHED_MODE_DISABLE_CMDID,
 
-    /* Group SET cmd for PEERS */
-    WMI_PEER_BULK_SET_CMDID,
 
     /* beacon/management specific commands */
 
@@ -9008,30 +9006,6 @@ typedef enum {
      * 4..31 | RESERVED
      */
     WMI_PDEV_PARAM_SET_DISABLED_SCHED_MODES,
-
-    /*
-     * Override default FW behavior and explicitly enable / disable
-     * to allow frames without encryption when no encryption is set.
-     *
-     */
-    WMI_PDEV_PARAM_BYPASS_ENCRYPTION,
-
-    /*
-     * Param to Enable/Disable scan blanking feature on the Scan Radio
-     * Host should ensure to send this param only for Scan Radio
-     * The WMI_SCAN_BLANKING_MODE enum specifies the possible values for this parameter.
-     * Based on the received input, the scan blanking feature will be carried out as explained in the enum WMI_SCAN_BLANKING_MODE
-     */
-    WMI_PDEV_PARAM_SET_SCAN_BLANKING_MODE,
-
-    /*
-     * Parameter to enable/disable Multi-Channel Concurrency low latency mode
-     * bit    | config_mode
-     * -----------------
-     *  0     | 0:disable, 1:enable.
-     *  1-31  | Reserved.
-     */
-    WMI_PDEV_PARAM_SET_CONC_LOW_LATENCY_MODE,
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
@@ -10774,10 +10748,10 @@ typedef struct {
     /** time slice duty cycle percentage of this interface */
     A_UINT32 time_slice_duty_cycle;
     /**
-     * noise floor value report to host
+     * Current home channel noise floor value report to host
      * Units are dBm, values 0x0000ffff and 0x0 are invalid.
      */
-    A_INT32 nf_cal_val_per_freq;
+    A_INT32 nf_cal_val;
 } wmi_iface_link_stats;
 
 typedef enum {
@@ -33312,7 +33286,6 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_ESL_EGID_CMDID);
         WMI_RETURN_STRING(WMI_TDMA_SCHEDULE_REQUEST_CMDID);
         WMI_RETURN_STRING(WMI_HPA_CMDID);
-        WMI_RETURN_STRING(WMI_PDEV_SET_TGTR2P_TABLE_CMDID); /* To set target rate to power table */
     }
 
     return (A_UINT8 *) "Invalid WMI cmd";
@@ -41178,9 +41151,6 @@ typedef enum {
     WMI_SAWF_SVC_CLASS_PARAM_DEFAULT_TID            = 0xffffffff,
     WMI_SAWF_SVC_CLASS_PARAM_DEFAULT_MSDU_LOSS_RATE = 0,
     WMI_SAWF_SVC_CLASS_PARAM_DEFAULT_DISABLED_SCHED_MODE = 0,
-    WMI_SAWF_SVC_CLASS_PARAM_DEFAULT_CODEL_ENABLED  = WMI_CODEL_DISABLED,
-    WMI_SAWF_SVC_CLASS_PARAM_DEFAULT_CODEL_LATENCY_TARGET_MS = 0xffffffff,
-    WMI_SAWF_SVC_CLASS_PARAM_DEFAULT_CODEL_INTERVAL_MS       = 0xffffffff,
 } WMI_SAWF_SVC_CLASS_PARAM_DEFAULTS;
 
 #define WMI_CODEL_INTERVAL_MAX_MS       0x0000ffff
@@ -41276,33 +41246,6 @@ typedef struct {
      * The WMI_SCHED_MODE_FLAGS enum defines the bit positions for each mode.
      */
     A_UINT32 disabled_sched_modes;
-
-    A_UINT32 codel_enabled; /* contains a WMI_CODEL_ENABLE_VALUES enum value */
-    /* codel_latency_target_ms:
-     * The codel_latency_target_ms field specifies the latency target for
-     * MSDU queues belonging to this service class.
-     * The latency of each such MSDU queue will periodically be checked
-     * (with the periodicity controlled by the code_interval_ms parameter).
-     * If the MSDU queue's latency is above this target latency, a MSDU will
-     * be dropped from the head of the queue, to attempt to get the flow's
-     * producer to scale down its rate of MSDU production.
-     * This value should be roughly 10% to 30% of the codel_interval_ms value.
-     * This value must be <= WMI_CODEL_LATENCY_TARGET_MAX_MS (or must equal
-     * WMI_SAWF_SVC_CLASS_PARAM_DEFAULT_CODEL_LATENCY_TARGET_MS).
-     */
-    A_UINT32 codel_latency_target_ms;
-    /* codel_interval_ms:
-     * The codel_interval_ms field specifies the baseline interval between
-     * successive checks that a given MSDU queue's latency is under the
-     * CoDel target latency.
-     * If in a given interval a MSDU queue has a latency exceeding the target,
-     * the duration of the subsequent interval for that MSDU queue will be
-     * reduced.  The interval will get reset to the baseline interval when
-     * the MSDU queue's latency is again under the CoDel target latency.
-     * This value must be <= WMI_CODEL_INTERVAL_MAX_MS (or must equal
-     * WMI_SAWF_SVC_CLASS_PARAM_DEFAULT_CODEL_INTERVAL_MS).
-     */
-    A_UINT32 codel_interval_ms;
 } wmi_sawf_svc_class_cfg_cmd_fixed_param;
 
 typedef struct {
@@ -41753,72 +41696,6 @@ typedef struct {
      */
     A_UINT32 ecwmax[WMI_AC_MAX];
 } wmi_tdma_schedule_request_cmd_fixed_param;
-
-typedef struct {
-    A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_pdev_set_tgtr2p_table _fixed_param */
-    A_UINT32 pdev_id;
-    /* freq_band:
-     * Indicates the intended FreqBand for updating targetPowerR2PTable.
-     *     0: 5G
-     *     1: 2G
-     *     2: 6G
-     */
-    A_UINT32 freq_band;
-    /* sub_band:
-     * Denotes band defined in targetPowerR2PFreqRangexG BDF fields.
-     * Valid values for each target is listed below
-     * For 11AX targets,
-     * 2G - 0
-     * 5G/6G - 0/1/2
-     *
-     * For 11BE targets,
-     * 2G - 0
-     * 5G/6G - 0/1
-     */
-    A_UINT32 sub_band;
-    /* is_ext:
-     * Applicable only for 11BE targets
-     * 0 - Default targetPowerR2PTable
-     * 1 - To update targetPowerR2PTable in extension fields
-     * For 11AX targets, value is expected to be 0.
-     */
-    A_UINT32 is_ext;
-    A_UINT32 target_type; /* 0 - IPQ95xx, 1 - QCN90xx, 0x10 - QCN92xx */
-    A_UINT32 r2p_array_len; /* length of targetPowerR2PTable */
-    /* end_of_r2ptable_update:
-     * This field can be used to indicate FW to trigger update of SW structures
-     * once user has updated for all the sub-bands of the Frequency band.
-     * This would be used when there are multiple sub-bands.
-     */
-    A_UINT32 end_of_r2ptable_update;
-/*
- * Following this structure is the TLV containing targetPowerR2PTablexG
- * of type INT8 and with a unit of 0.25dBm.
- */
-} wmi_pdev_set_tgtr2p_table_cmd_fixed_param;
-
-typedef enum {
-    WMI_PDEV_TGTR2P_SUCCESS = 0,
-    WMI_PDEV_TGTR2P_SUCCESS_WAITING_FOR_END_OF_UPDATE,
-    WMI_PDEV_TGTR2P_ERROR_INVALID_FREQ_BAND,
-    WMI_PDEV_TGTR2P_ERROR_INVALID_SUB_BAND,
-    WMI_PDEV_TGTR2P_ERROR_EXTENSION_FIELDS_NOT_ENABLED_IN_BDF,
-    WMI_PDEV_TGTR2P_ERROR_INVALID_TARGET_TPYE,
-    WMI_PDEV_TGTR2P_ERROR_R2P_ARRAY_LEN_MISMATCH,
-} wmi_pdev_set_tgtr2p_event_status_type;
-
-typedef struct {
-    A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_pdev_set_tgtr2p_table_event_fixed_param */
-
-    /* status:
-     * enum wmi_pdev_set_tgtr2p_event_status_type to indicate the status
-     * code/result
-     */
-    A_UINT32 status;
-    A_UINT32 pdev_id; /* to identify for which pdev the response is received */
-} wmi_pdev_set_tgtr2p_table_event_fixed_param;
-
-
 
 
 /* ADD NEW DEFS HERE */

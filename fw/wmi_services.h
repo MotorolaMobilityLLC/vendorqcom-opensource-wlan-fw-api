@@ -611,11 +611,6 @@ typedef  enum  {
     WMI_SERVICE_DETERMINISTIC_SCHEDULER_LEVEL0 = 358, /* FW supports 12.2 level scheduler mode disable commands and stats */
     WMI_SERVICE_COORDINATED_AP_TDMA = 359, /* Support for Coordinated-AP TDMA feature */
     WMI_SERVICE_HPA_SUPPORT = 360, /* Support for Host Platform Authentication */
-    WMI_SERVICE_WMSK_COMPACTION_RX_TLVS = 361, /* Support word mask subscription for rx tlv compaction */
-    WMI_SERVICE_PRE_RX_TO = 362, /* Support for Pre RX timeout */
-    WMI_SERVICE_TDLS_CONCURRENCY_SUPPORT = 363, /* Support for TDLS concurrency in FW */
-    WMI_SERVICE_SCAN_RADIO_BLANKING_SUPPORT = 364, /* Indicates that FW supports the Scan radio blanking feature */
-    WMI_SERVICE_PEER_METADATA_V1A_V1B_SUPPORT = 365, /* Support rx peer meta data v1a and v1b */
 
     WMI_MAX_EXT2_SERVICE
 

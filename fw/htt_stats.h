@@ -7544,12 +7544,12 @@ typedef struct {
     A_UINT32 rx_ota_err_cnt[HTT_MAX_RX_OTA_ERR_CNT];
     /** rx_pkt_cnt_ext -
      * Received EOP (end-of-packet) count per packet type for BE;
-     * [0] = WUR; [1] = AZ; [2-3]=RVSD
+     * [0] = EHT; [1] = WUR; [2] = AZ; [3]=RVSD
      */
     A_UINT32 rx_pkt_cnt_ext[HTT_MAX_RX_PKT_CNT_EXT];
     /** rx_pkt_crc_pass_cnt_ext -
      * Received EOP (end-of-packet) count per packet type for BE;
-     * [0] = WUR; [1] = AZ; [2-3]=RVSD
+     * [0] = EHT; [1] = WUR; [2] = AZ; [3]=RVSD
      */
     A_UINT32 rx_pkt_crc_pass_cnt_ext[HTT_MAX_RX_PKT_CRC_PASS_CNT_EXT];
     /** rx_pkt_mu_cnt -
