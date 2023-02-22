@@ -9010,6 +9010,39 @@ typedef enum {
      * 4..31 | RESERVED
      */
     WMI_PDEV_PARAM_SET_DISABLED_SCHED_MODES,
+
+    /*
+     * Override default FW behavior and explicitly enable / disable
+     * to allow frames without encryption when no encryption is set.
+     *
+     */
+    WMI_PDEV_PARAM_BYPASS_ENCRYPTION,
+
+    /*
+     * Param to Enable/Disable scan blanking feature on the Scan Radio
+     * Host should ensure to send this param only for Scan Radio
+     * The WMI_SCAN_BLANKING_MODE enum specifies the possible values for this parameter.
+     * Based on the received input, the scan blanking feature will be carried out as explained in the enum WMI_SCAN_BLANKING_MODE
+     */
+    WMI_PDEV_PARAM_SET_SCAN_BLANKING_MODE,
+
+    /*
+     * Parameter to enable/disable Multi-Channel Concurrency low latency mode
+     * bit    | config_mode
+     * -----------------
+     *  0     | 0:disable, 1:enable.
+     *  1-31  | Reserved.
+     */
+    WMI_PDEV_PARAM_SET_CONC_LOW_LATENCY_MODE,
+
+    /*
+     * Parameter to enable/disable low power listen mode
+     * bit    | config_mode
+     * -----------------
+     *  0     | 0:disable, 1:enable.
+     *  1-31  | Reserved.
+     */
+    WMI_PDEV_PARAM_LPL_SETTING,
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
