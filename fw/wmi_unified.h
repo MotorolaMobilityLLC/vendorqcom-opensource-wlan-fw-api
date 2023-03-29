@@ -625,6 +625,9 @@ typedef enum {
     /** Enable SR prohibit feature for TIDs of vdev */
     WMI_VDEV_PARAM_ENABLE_SR_PROHIBIT_CMDID,
 
+    /** pause vdev's Tx, Rx, or both for a specific duration */
+    WMI_VDEV_PAUSE_CMDID,
+
     /* peer specific commands */
 
     /** create a peer */
@@ -35704,6 +35707,11 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_HPA_CMDID);
         WMI_RETURN_STRING(WMI_PDEV_SET_TGTR2P_TABLE_CMDID); /* To set target rate to power table */
         WMI_RETURN_STRING(WMI_MLO_VDEV_GET_LINK_INFO_CMDID);
+        WMI_RETURN_STRING(WMI_VDEV_SET_ULOFDMA_MANUAL_SU_TRIG_CMDID);
+        WMI_RETURN_STRING(WMI_VDEV_SET_ULOFDMA_MANUAL_MU_TRIG_CMDID);
+        WMI_RETURN_STRING(WMI_VDEV_STANDALONE_SOUND_CMDID);
+        WMI_RETURN_STRING(WMI_PDEV_SET_RF_PATH_CMDID); /* set RF path of PHY */
+        WMI_RETURN_STRING(WMI_VDEV_PAUSE_CMDID);
     }
 
     return (A_UINT8 *) "Invalid WMI cmd";
@@ -44303,6 +44311,337 @@ typedef struct {
     };
     A_UINT32 chan_freq;             /* Channel frequency in MHz */
 } wmi_mlo_vdev_link_info;
+
+/* Manual UL OFDMA trigger frame data structures */
+
+typedef enum {
+    WMI_UL_OFDMA_MANUAL_TRIG_TXERR_NONE,
+    WMI_UL_OFDMA_MANUAL_TRIG_TXERR_RESP,    /* response timeout, mismatch,
+                                             * BW mismatch, mimo ctrl mismatch,
+                                             * CRC error.. */
+    WMI_UL_OFDMA_MANUAL_TRIG_TXERR_FILT,    /* blocked by tx filtering */
+    WMI_UL_OFDMA_MANUAL_TRIG_TXERR_FIFO,    /* fifo, misc errors in HW */
+    WMI_UL_OFDMA_MANUAL_TRIG_TXERR_SWABORT, /* software initiated abort
+                                             * (TX_ABORT) */
+
+    WMI_UL_OFDMA_MANUAL_TRIG_TXERR_MAX     = 0xff,
+    WMI_UL_OFDMA_MANUAL_TRIG_TXERR_INVALID =
+        WMI_UL_OFDMA_MANUAL_TRIG_TXERR_MAX
+} wmi_ul_ofdma_manual_trig_txerr_t;
+
+typedef struct {
+    /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_manual_ul_ofdma_trig_feedback_evt_fixed_param  */
+    A_UINT32 tlv_header;
+
+    /* VDEV identifier */
+    A_UINT32 vdev_id;
+
+    /* To indicate whether feedback event is for SU (0) or MU trigger (1) */
+    A_UINT32 feedback_trig_type;
+
+    /* Feedback Params */
+    A_UINT32 curr_su_manual_trig_count;
+    A_UINT32 remaining_su_manual_trig;
+    A_UINT32 remaining_mu_trig_peers;
+    A_UINT32 manual_trig_status;  /* holds a wmi_ul_ofdma_manual_trig_txerr_t */
+
+    /**
+     * This TLV is followed by TLVs below:
+     *    wmi_mac_addr peer_macaddr[];
+     *        Array length corresponds to the number of triggered peers
+     */
+} wmi_manual_ul_ofdma_trig_feedback_evt_fixed_param;
+
+typedef struct {
+    /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_vdev_set_manual_mu_trig_cmd_fixed_param  */
+    A_UINT32 tlv_header;
+
+    /* VDEV identifier */
+    A_UINT32 vdev_id;
+
+    /* Configurable Parameters for manual UL OFDMA Multi-User Trigger frame */
+    A_UINT32 manual_trig_preferred_ac;
+    /**
+     * This TLV is followed by TLVs below:
+     *    wmi_mac_addr peer_macaddr[];
+     *        The array has one element for each peer to be included in the
+     *        manually-triggered UL MU transmission.
+     */
+} wmi_vdev_set_manual_mu_trig_cmd_fixed_param;
+
+typedef struct {
+   /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_vdev_set_manual_su_trig_cmd_fixed_param  */
+    A_UINT32 tlv_header;
+
+    /* VDEV identifier */
+    A_UINT32 vdev_id;
+
+    /* Configurable Parameters for manual UL OFDMA Single-User Trigger frame */
+    wmi_mac_addr peer_macaddr;
+    A_UINT32 manual_trig_preferred_ac;
+    A_UINT32 num_su_manual_trig;
+    A_UINT32 manual_trig_length;
+    A_UINT32 manual_trig_mcs;
+    A_UINT32 manual_trig_nss;
+    A_INT32  manual_trig_target_rssi; /* units = dBm */
+} wmi_vdev_set_manual_su_trig_cmd_fixed_param;
+
+
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_SET_ASNR_LENGTH(asnr_params, value) \
+        WMI_SET_BITS(asnr_params, 0, 16, value)
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_GET_ASNR_LENGTH(asnr_params) \
+        WMI_GET_BITS(asnr_params, 0, 16)
+
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_SET_ASNR_OFFSET(asnr_params, value) \
+        WMI_SET_BITS(asnr_params, 16, 16, value)
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_GET_ASNR_OFFSET(asnr_params) \
+        WMI_GET_BITS(asnr_params, 16, 16)
+
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_SET_DSNR_LENGTH(dsnr_params, value) \
+        WMI_SET_BITS(dsnr_params, 0, 16, value)
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_GET_DSNR_LENGTH(dsnr_params) \
+        WMI_GET_BITS(dsnr_params, 0, 16)
+
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_SET_DSNR_OFFSET(dsnr_params, value) \
+        WMI_SET_BITS(dsnr_params, 16, 16, value)
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_GET_DSNR_OFFSET(dsnr_params) \
+        WMI_GET_BITS(dsnr_params, 16, 16)
+
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_SET_FB_PARAMS_NC(fb_params, value) \
+        WMI_SET_BITS(fb_params, 0, 2, value)
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_GET_FB_PARAMS_NC(fb_params) \
+        WMI_GET_BITS(fb_params, 0, 2)
+
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_SET_FB_PARAMS_NSS_NUM(fb_params, value) \
+        WMI_SET_BITS(fb_params, 2, 2, value)
+#define WMI_DMA_BUF_RELEASE_CV_UPLOAD_GET_FB_PARAMS_NSS_NUM(fb_params) \
+        WMI_GET_BITS(fb_params, 2, 2)
+
+
+#define WMI_SET_STANDALONE_SOUND_PARAMS_FB_TYPE(snd_params, value) \
+        WMI_SET_BITS(snd_params, 0, 1, value)
+#define WMI_GET_STANDALONE_SOUND_PARAMS_FB_TYPE(snd_params) \
+        WMI_GET_BITS(snd_params, 0, 1)
+
+#define WMI_SET_STANDALONE_SOUND_PARAMS_NG(snd_params, value) \
+        WMI_SET_BITS(snd_params, 1, 2, value)
+#define WMI_GET_STANDALONE_SOUND_PARAMS_NG(snd_params) \
+        WMI_GET_BITS(snd_params, 1, 2)
+
+#define WMI_SET_STANDALONE_SOUND_PARAMS_CB(snd_params, value) \
+        WMI_SET_BITS(snd_params, 3, 1, value)
+#define WMI_GET_STANDALONE_SOUND_PARAMS_CB(snd_params) \
+        WMI_GET_BITS(snd_params, 3, 1)
+
+#define WMI_SET_STANDALONE_SOUND_PARAMS_BW(snd_params, value) \
+        WMI_SET_BITS(snd_params, 4, 3, value)
+#define WMI_GET_STANDALONE_SOUND_PARAMS_BW(snd_params) \
+        WMI_GET_BITS(snd_params, 4, 3)
+
+
+typedef enum _WMI_STANDALONE_SOUND_STATUS_T {
+    WMI_STANDALONE_SOUND_STATUS_OK,
+    WMI_STANDALONE_SOUND_STATUS_ERR_NUM_PEERS_EXCEEDED,
+    WMI_STANDALONE_SOUND_STATUS_ERR_NG_INVALID,
+    WMI_STANDALONE_SOUND_STATUS_ERR_NUM_REPEAT_EXCEEDED,
+    WMI_STANDALONE_SOUND_STATUS_ERR_PEER_DOESNOT_SUPPORT_BW,
+    WMI_STANDALONE_SOUND_STATUS_ERR_INVALID_PEER,
+    WMI_STANDALONE_SOUND_STATUS_ERR_INVALID_VDEV,
+    WMI_STANDALONE_SOUND_STATUS_ERR_PEER_DOES_NOT_SUPPORT_MU_FB,
+    WMI_STANDALONE_SOUND_STATUS_ERR_DMA_NOT_CONFIGURED,
+    WMI_STANDALONE_SOUND_STATUS_ERR_COMPLETE_FAILURE,
+} WMI_STANDALONE_SOUND_STATUS_T;
+
+typedef struct {
+    A_UINT32 tlv_header; /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_dma_buf_release_cv_upload_meta_data */
+    /** Set if the CV is valid */
+    A_UINT32 is_valid;
+     /** Feedback type */
+    A_UINT32 fb_type;
+    /**
+    * [15:0] ASNR length
+    * [31:16] ASNR offset
+    */
+    A_UINT32 asnr_params;
+    /**
+    * [15:0] DSNR length
+    * [31:16] DSNR offset
+    */
+    A_UINT32 dsnr_params;
+    /** Peer mac address */
+    wmi_mac_addr peer_mac_address;
+    /**
+    * [1:0] Nc
+    * [3:2] nss_num
+    */
+    A_UINT32 fb_params;
+} wmi_dma_buf_release_cv_upload_meta_data;
+
+typedef struct {
+    A_UINT32 tlv_header; /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_standalone_sounding_cmd_fixed_param */
+    /** vdev identifier */
+    A_UINT32 vdev_id;
+    /** sounding_params:
+    * [0] Feedback type
+    * [2:1] Ng
+    * [3] Codebook
+    * [6:4] BW
+    *     0 = 20 MHz
+    *     1 = 40 MHz
+    *     2 = 80 MHz
+    *     3 = 160 MHz
+    *     4 = 320 MHz
+    * [31:7] Reserved
+    */
+    A_UINT32 sounding_params;
+    /** The number of sounding repeats */
+    A_UINT32 num_sounding_repeats;
+    /**
+    * TLV (tag length value) parameters follow the
+    * structure. The TLV's are:
+    * wmi_mac_addr peer_list[num_peers];
+    */
+} wmi_standalone_sounding_cmd_fixed_param;
+
+typedef struct {
+    A_UINT32 tlv_header; /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_standalone_sounding_evt_fixed_param */
+    /** vdev identifier */
+    A_UINT32 vdev_id;
+    /** status:
+     * standalone sounding command status -
+     * refer to WMI_STANDALONE_SOUND_STATUS_T
+     */
+    A_UINT32 status;
+    /** number of CV buffers uploaded */
+    A_UINT32 buffer_uploaded;
+    /** TLV (tag length value) parameters follow the
+    * structure. The TLV's are:
+    * A_UINT32 snd_failed[num_sounding_repeats];
+    *     snd_failed[] array's elements hold the number of failures
+    *     for each sounding.
+    */
+} wmi_standalone_sounding_evt_fixed_param;
+
+typedef struct {
+    /*
+     * TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_pdev_set_rf_path_cmd_fixed_param
+     */
+    A_UINT32 tlv_header;
+    /* pdev_id for identifying the MAC */
+    A_UINT32 pdev_id;
+    /*
+     * rf_path :
+     * 0 - primary RF path
+     * 1 - secondary RF path
+     */
+    A_UINT32 rf_path;
+} wmi_pdev_set_rf_path_cmd_fixed_param;
+
+#define WMI_SET_RX_PEER_STATS_RESP_TYPE(rx_params, value) \
+        WMI_SET_BITS(rx_params, 0, 1, value)
+#define WMI_GET_RX_PEER_STATS_RESP_TYPE(rx_params) \
+        WMI_GET_BITS(rx_params, 0, 1)
+
+#define WMI_SET_RX_PEER_STATS_MCS(rx_params, value) \
+        WMI_SET_BITS(rx_params, 1, 5, value)
+#define WMI_GET_RX_PEER_STATS_MCS(rx_params) \
+        WMI_GET_BITS(rx_params, 1, 5)
+
+#define WMI_SET_RX_PEER_STATS_NSS(rx_params, value) \
+        WMI_SET_BITS(rx_params, 6, 4, value)
+#define WMI_GET_RX_PEER_STATS_NSS(rx_params) \
+        WMI_GET_BITS(rx_params, 6, 4)
+
+#define WMI_SET_RX_PEER_STATS_GI_LTF_TYPE(rx_params, value) \
+        WMI_SET_BITS(rx_params, 10, 4, value)
+#define WMI_GET_RX_PEER_STATS_GI_LTF_TYPE(rx_params) \
+        WMI_GET_BITS(rx_params, 10, 4)
+
+typedef enum {
+    WMI_PEER_RX_RESP_SU    = 0,
+    WMI_PEER_RX_RESP_MIMO  = 1,
+    WMI_PEER_RX_RESP_OFDMA = 2,
+} WMI_PEER_RX_RESP_TYPE;
+
+typedef struct {
+    /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_manual_ul_ofdma_trig_rx_peer_userinfo  */
+    A_UINT32        tlv_header;
+
+    /* Peer mac address */
+    wmi_mac_addr    peer_macaddr;
+
+    /* Per peer RX parameters */
+    /* [0] - Flag to indicate if peer responded with QoS Data or QoS NULL.
+     *  0 -> indicates QoS NULL, 1-> indicates QoS Data response
+     * [5:1] - MCS - Peer response MCS
+     * [9:6] - NSS - Peer response NSS
+     * [13:10] - GI LTF Type - Peer response GI/LTF type
+     *     0 => gi == GI_1600 && ltf == 1x LTF
+     *     1 => gi == GI_1600 && ltf == 2x LTF
+     *     2 => gi == GI_3200 && ltf == 4x LTF
+     * [31:14] - Reserved
+     */
+    A_UINT32        rx_peer_stats;
+
+    /* Peer response per chain RSSI */
+    A_INT32         peer_per_chain_rssi[WMI_MAX_CHAINS];
+} wmi_manual_ul_ofdma_trig_rx_peer_userinfo;
+
+typedef struct {
+    /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_manual_ul_ofdma_trig_rx_peer_userinfo_evt_fixed_param  */
+    A_UINT32 tlv_header;
+
+    A_UINT32 vdev_id; /* VDEV identifier */
+
+    /* combined_rssi:
+     * RX Combined RSSI in dBm
+     * Value indicates the average RSSI per 20MHz by averaging the total RSSI
+     * across entire BW for each OFDMA STA
+     */
+    A_INT32 combined_rssi;
+
+    /* rx_ppdu_resp_type:
+     * RX PPDU Response Type
+     * Refer WMI_PEER_RX_RESP_TYPE for possible values
+     */
+    A_UINT32 rx_ppdu_resp_type;
+
+    /* rx_resp_bw:
+     * RX response bandwidth
+     *     0 = 20 MHz
+     *     1 = 40 MHz
+     *     2 = 80 MHz
+     *     3 = 160 MHz
+     *     4 = 320 MHz
+     */
+    A_UINT32 rx_resp_bw;
+
+    /**
+     * This TLV is followed by TLVs below:
+     *     wmi_manual_ul_ofdma_trig_rx_peer_userinfo rx_peer_userinfo[]
+     *         TLV length specified by number of peer responses for manual
+     *         UL OFDMA trigger
+     */
+} wmi_manual_ul_ofdma_trig_rx_peer_userinfo_evt_fixed_param;
+
+typedef enum _WMI_VDEV_PAUSE_TYPE
+{
+    WMI_VDEV_PAUSE_TYPE_UNKNOWN = 0,
+    WMI_VDEV_PAUSE_TYPE_MLO_LINK = 1,
+    WMI_VDEV_PAUSE_TYPE_TX = 2,
+} WMI_VDEV_PAUSE_TYPE;
+
+typedef struct {
+    /** TLV tag and len; tag equals
+     * WMITLV_TAG_STRUC_wmi_vdev_pause_cmd_fixed_param */
+    A_UINT32 tlv_header;
+    /* VDEV identifier */
+    A_UINT32 vdev_id;
+    /** type of pause, refer to WMI_VDEV_PAUSE_TYPE */
+    A_UINT32 pause_type;
+    /** duration of pause, in unit of ms */
+    A_UINT32 pause_dur_ms;
+} wmi_vdev_pause_cmd_fixed_param;
 
 
 

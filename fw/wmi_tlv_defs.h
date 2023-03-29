@@ -1360,6 +1360,7 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_cca_busy_subband_info,
     WMITLV_TAG_STRUC_wmi_mlo_link_disable_request_event_fixed_param,
     WMITLV_TAG_STRUC_wmi_ctrl_path_peer_stats_struct,
+    WMITLV_TAG_STRUC_wmi_vdev_pause_cmd_fixed_param,
 } WMITLV_TAG_ID;
 
 /*
@@ -1881,6 +1882,11 @@ typedef enum {
     OP(WMI_PDEV_SET_TGTR2P_TABLE_CMDID) \
     OP(WMI_PEER_BULK_SET_CMDID) \
     OP(WMI_MLO_VDEV_GET_LINK_INFO_CMDID) \
+    OP(WMI_VDEV_SET_ULOFDMA_MANUAL_SU_TRIG_CMDID) \
+    OP(WMI_VDEV_SET_ULOFDMA_MANUAL_MU_TRIG_CMDID) \
+    OP(WMI_VDEV_STANDALONE_SOUND_CMDID) \
+    OP(WMI_PDEV_SET_RF_PATH_CMDID) \
+    OP(WMI_VDEV_PAUSE_CMDID) \
     /* add new CMD_LIST elements above this line */
 
 
@@ -5322,6 +5328,33 @@ WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_SET_TGTR2P_TABLE_CMDID);
 #define WMITLV_TABLE_WMI_MLO_VDEV_GET_LINK_INFO_CMDID(id,op,buf,len) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_mlo_vdev_get_link_info_cmd_fixed_param, wmi_mlo_vdev_get_link_info_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
 WMITLV_CREATE_PARAM_STRUC(WMI_MLO_VDEV_GET_LINK_INFO_CMDID);
+
+/* WMI command to set Manual SU UL OFDMA Trigger params */
+#define WMITLV_TABLE_WMI_VDEV_SET_ULOFDMA_MANUAL_SU_TRIG_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id, op, buf, len, WMITLV_TAG_STRUC_wmi_vdev_set_manual_su_trig_cmd_fixed_param, wmi_vdev_set_manual_su_trig_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_SET_ULOFDMA_MANUAL_SU_TRIG_CMDID);
+
+/* WMI command to set Manual MU UL OFDMA Trigger params */
+#define WMITLV_TABLE_WMI_VDEV_SET_ULOFDMA_MANUAL_MU_TRIG_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id, op, buf, len, WMITLV_TAG_STRUC_wmi_vdev_set_manual_mu_trig_cmd_fixed_param, wmi_vdev_set_manual_mu_trig_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
+    WMITLV_ELEM(id, op, buf, len, WMITLV_TAG_ARRAY_FIXED_STRUC, wmi_mac_addr, peer_macaddr, WMITLV_SIZE_VAR)
+WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_SET_ULOFDMA_MANUAL_MU_TRIG_CMDID);
+
+/* Standalone Sound Cmd */
+#define WMITLV_TABLE_WMI_VDEV_STANDALONE_SOUND_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_standalone_sounding_cmd_fixed_param, wmi_standalone_sounding_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_FIXED_STRUC, wmi_mac_addr, peer_list, WMITLV_SIZE_VAR)
+WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_STANDALONE_SOUND_CMDID);
+
+/* WMI cmd to set RF path for PHY */
+#define WMITLV_TABLE_WMI_PDEV_SET_RF_PATH_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_set_rf_path_cmd_fixed_param, wmi_pdev_set_rf_path_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_SET_RF_PATH_CMDID);
+
+/* VDEV PAUSE cmd */
+#define WMITLV_TABLE_WMI_VDEV_PAUSE_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vdev_pause_cmd_fixed_param, wmi_vdev_pause_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_PAUSE_CMDID);
 
 
 
