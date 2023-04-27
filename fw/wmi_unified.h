@@ -19989,13 +19989,7 @@ typedef struct {
 
 #define WMI_PEER_SET_TX_POWER                          0x28
 
-/*
- * Param to update connected peer channel bandwidth.
- * Target firmware should take care of notifying connected peer about
- * change in bandwidth, through OMN/OMI notification before performing
- * bandwidth update internally.
- */
-#define WMI_PEER_CHWIDTH_WITH_NOTIFY                   0x29
+#define WMI_PEER_FT_ROAMING_PEER_UPDATE                0x29
 
 typedef struct {
     A_UINT32 tlv_header; /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_peer_set_param_cmd_fixed_param */
