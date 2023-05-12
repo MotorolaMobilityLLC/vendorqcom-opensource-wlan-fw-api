@@ -1377,6 +1377,10 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_gpio_state_res_event_fixed_param,
     WMITLV_TAG_STRUC_wmi_ctrl_path_vdev_stats_struct,
     WMITLV_TAG_STRUC_wmi_pdev_set_rf_path_event_fixed_param,
+    WMITLV_TAG_STRUC_wmi_mlo_link_bss_param,
+    WMITLV_TAG_STRUC_wmi_mlo_set_link_bss_params_cmd_fixed_param,
+    WMITLV_TAG_STRUC_wmi_mlo_link_switch_req_evt_fixed_param,
+    WMITLV_TAG_STRUC_wmi_mlo_link_switch_cnf_fixed_param,
 } WMITLV_TAG_ID;
 /*
  * IMPORTANT: Please add _ALL_ WMI Commands Here.
@@ -5100,7 +5104,9 @@ WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_ENABLE_DURATION_BASED_TX_MODE_SELECTION_CMDID
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_mlo_link_set_active_cmd_fixed_param, wmi_mlo_link_set_active_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_mlo_set_active_link_number_param, link_number_param,  WMITLV_SIZE_VAR) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, vdev_id_bitmap, WMITLV_SIZE_VAR) \
-    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, vdev_id_bitmap2, WMITLV_SIZE_VAR)
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, vdev_id_bitmap2, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, ieee_link_id_bitmap, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, ieee_link_id_bitmap2, WMITLV_SIZE_VAR)
 WMITLV_CREATE_PARAM_STRUC(WMI_MLO_LINK_SET_ACTIVE_CMDID);
 
 /* Request DPD Status */
@@ -5375,6 +5381,33 @@ WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_STANDALONE_SOUND_CMDID);
 #define WMITLV_TABLE_WMI_PDEV_SET_RF_PATH_CMDID(id,op,buf,len) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_set_rf_path_cmd_fixed_param, wmi_pdev_set_rf_path_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
 WMITLV_CREATE_PARAM_STRUC(WMI_PDEV_SET_RF_PATH_CMDID);
+
+/* VDEV PAUSE cmd */
+#define WMITLV_TABLE_WMI_VDEV_PAUSE_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vdev_pause_cmd_fixed_param, wmi_vdev_pause_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_VDEV_PAUSE_CMDID);
+
+/* pdev,vdev,peer cmd messages for tunneling vendor-specific contents */
+#define WMITLV_TABLE_WMI_VENDOR_PDEV_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_vendor_cmd_fixed_param, wmi_pdev_vendor_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_VENDOR_PDEV_CMDID);
+#define WMITLV_TABLE_WMI_VENDOR_VDEV_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vdev_vendor_cmd_fixed_param, wmi_vdev_vendor_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_VENDOR_VDEV_CMDID);
+#define WMITLV_TABLE_WMI_VENDOR_PEER_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_peer_vendor_cmd_fixed_param, wmi_peer_vendor_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_VENDOR_PEER_CMDID);
+
+/* SET MLO link BSS param */
+#define WMITLV_TABLE_WMI_MLO_LINK_SET_BSS_PARAMS_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_mlo_set_link_bss_params_cmd_fixed_param, wmi_mlo_set_link_bss_params_cmd_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_STRUC, wmi_mlo_link_bss_param, link_bss_params, WMITLV_SIZE_VAR)
+WMITLV_CREATE_PARAM_STRUC(WMI_MLO_LINK_SET_BSS_PARAMS_CMDID);
+
+/* MLO link switch confirmation command to inform FW about host side status and reason code */
+#define WMITLV_TABLE_WMI_MLO_LINK_SWITCH_CONF_CMDID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_mlo_link_switch_cnf_fixed_param, wmi_mlo_link_switch_cnf_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_MLO_LINK_SWITCH_CONF_CMDID);
 
 
 
@@ -7133,7 +7166,9 @@ WMITLV_CREATE_PARAM_STRUC(WMI_TWT_SESSION_STATS_EVENTID);
 #define WMITLV_TABLE_WMI_MLO_LINK_SET_ACTIVE_RESP_EVENTID(id,op,buf,len) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_mlo_link_set_active_resp_event_fixed_param, wmi_mlo_link_set_active_resp_event_fixed_param, fixed_param, WMITLV_SIZE_FIX) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, force_active_vdev_bitmap, WMITLV_SIZE_VAR) \
-    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, force_inactive_vdev_bitmap, WMITLV_SIZE_VAR)
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, force_inactive_vdev_bitmap, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, force_active_ieee_link_id_bitmap, WMITLV_SIZE_VAR) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_ARRAY_UINT32, A_UINT32, force_inactive_ieee_link_id_bitmap, WMITLV_SIZE_VAR)
 WMITLV_CREATE_PARAM_STRUC(WMI_MLO_LINK_SET_ACTIVE_RESP_EVENTID);
 
 /* Get DPD status Event */
@@ -7308,6 +7343,22 @@ WMITLV_CREATE_PARAM_STRUC(WMI_MANUAL_UL_OFDMA_TRIG_RX_PEER_USERINFO_EVENTID);
 #define WMITLV_TABLE_WMI_MLO_LINK_DISABLE_REQUEST_EVENTID(id,op,buf,len) \
     WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_mlo_link_disable_request_event_fixed_param, wmi_mlo_link_disable_request_event_fixed_param, fixed_param, WMITLV_SIZE_FIX)
 WMITLV_CREATE_PARAM_STRUC(WMI_MLO_LINK_DISABLE_REQUEST_EVENTID);
+
+/* pdev,vdev,peer event messages for tunneling vendor-specific contents */
+#define WMITLV_TABLE_WMI_VENDOR_PDEV_EVENTID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_pdev_vendor_event_fixed_param, wmi_pdev_vendor_event_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_VENDOR_PDEV_EVENTID);
+#define WMITLV_TABLE_WMI_VENDOR_VDEV_EVENTID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_vdev_vendor_event_fixed_param, wmi_vdev_vendor_event_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_VENDOR_VDEV_EVENTID);
+#define WMITLV_TABLE_WMI_VENDOR_PEER_EVENTID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_peer_vendor_event_fixed_param, wmi_peer_vendor_event_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_VENDOR_PEER_EVENTID);
+
+/* link switch event */
+#define WMITLV_TABLE_WMI_MLO_LINK_SWITCH_REQUEST_EVENTID(id,op,buf,len) \
+    WMITLV_ELEM(id,op,buf,len, WMITLV_TAG_STRUC_wmi_mlo_link_switch_req_evt_fixed_param, wmi_mlo_link_switch_req_evt_fixed_param, fixed_param, WMITLV_SIZE_FIX)
+WMITLV_CREATE_PARAM_STRUC(WMI_MLO_LINK_SWITCH_REQUEST_EVENTID);
 
 
 #ifdef __cplusplus
