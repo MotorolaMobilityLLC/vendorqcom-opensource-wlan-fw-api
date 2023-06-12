@@ -8012,6 +8012,18 @@ typedef struct {
      * contain valid data, versus how many are only for alignment padding.
      */
     A_UINT32 num_bytes_valid_in_cswrap_ie_ext_ver2;
+
+    /*
+     * Add link id, mld address and link address
+     * fields for N link CSA support
+     */
+    A_UINT32 link_id; /* Link id associated with AP */
+    wmi_mac_addr mld_mac_address; /* AP mld mac address */
+    wmi_mac_addr link_mac_address; /* AP link mac address */
+    A_UINT32 mld_mac_address_present :1,
+             link_mac_address_present :1,
+             link_id_present :1,
+             reserved :29;
 /*
  * This initial fixed_param TLV may be followed by the below TLVs:
  *   - cs_wrap_ie variable-length byte-array TLV
@@ -9180,16 +9192,6 @@ typedef enum {
      *  1 - Force PCIE Gen Speed and Lane Width to maximum supported value.
      */
     WMI_PDEV_PARAM_PCIE_CONFIG,
-
-    /** CTS timeout - change wireless packet cts timeout configuration,
-     *  units are microseconds
-     */
-    WMI_PDEV_PARAM_CTS_TIMEOUT,
-
-    /** Slot time - change wireless packet slot time value dynamically,
-     *  units are microseconds
-     */
-    WMI_PDEV_PARAM_SLOT_TIME,
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
@@ -15908,6 +15910,12 @@ typedef struct {
 #define WMI_MLO_FLAGS_SET_LINK_DEL(mlo_flags, value)        WMI_SET_BITS(mlo_flags, 9, 1, value)
 #define WMI_MLO_FLAGS_GET_BRIDGE_PEER(mlo_flags)            WMI_GET_BITS(mlo_flags, 10, 1)
 #define WMI_MLO_FLAGS_SET_BRIDGE_PEER(mlo_flags, value)     WMI_SET_BITS(mlo_flags, 10, 1, value)
+#define WMI_MLO_FLAGS_GET_NSTR_BITMAP_PRESENT(mlo_flags)    WMI_GET_BITS(mlo_flags, 11, 1)
+#define WMI_MLO_FLAGS_SET_NSTR_BITMAP_PRESENT(mlo_flags, value) WMI_SET_BITS(mlo_flags, 11, 1, value)
+#define WMI_MLO_FLAGS_GET_NSTR_BITMAP_SIZE(mlo_flags)       WMI_GET_BITS(mlo_flags, 12, 1)
+#define WMI_MLO_FLAGS_SET_NSTR_BITMAP_SIZE(mlo_flags, value) WMI_SET_BITS(mlo_flags, 12, 1, value)
+#define WMI_MLO_FLAGS_GET_MLO_LINK_SWITCH(mlo_flags)        WMI_GET_BITS(mlo_flags, 13, 1)
+#define WMI_MLO_FLAGS_SET_MLO_LINK_SWITCH(mlo_flags, value) WMI_SET_BITS(mlo_flags, 13, 1, value)
 
 /* this structure used for pass mlo flags*/
 typedef struct {
@@ -15924,7 +15932,16 @@ typedef struct {
                      mlo_link_add:1, /* Indicate dynamic link addition in an MLD VAP */
                      mlo_link_del:1, /* Indicate dynamic link deletion in an MLD VAP */
                      mlo_bridge_peer:1, /* Indicate if this link has bridge_peer */
-                     unused: 21;
+                     nstr_bitmap_present:1, /* Indicate if at least one NSTR link pair is present in the MLD */
+                     /* nstr_bitmap_size:
+                      * Set to 1 if the length of the corresponding NSTR
+                      * Indication Bitmap subfield is equal to 2 octets.
+                      * Set to 0 if the length of the corresponding NSTR
+                      * Indication Bitmap subfield is equal to 1 octet.
+                      */
+                     nstr_bitmap_size:1,
+                     mlo_link_switch: 1, /* indicate the command is a part of link switch procedure */
+                     unused: 18;
         };
         A_UINT32 mlo_flags;
     };
@@ -20048,6 +20065,8 @@ typedef struct {
 #define WMI_PEER_CHWIDTH_PUNCTURE_20MHZ_BITMAP         0x27
 
 #define WMI_PEER_SET_TX_POWER                          0x28
+
+#define WMI_PEER_FT_ROAMING_PEER_UPDATE                0x29
 
 typedef struct {
     A_UINT32 tlv_header; /** TLV tag and len; tag equals WMITLV_TAG_STRUC_wmi_peer_set_param_cmd_fixed_param */
@@ -34321,6 +34340,7 @@ typedef enum {
     WMI_REQUEST_CTRL_PATH_T2LM_STAT         = 14,
     WMI_REQUEST_CTRL_PATH_BLANKING_STAT     = 15,
     WMI_REQUEST_CTRL_PATH_PEER_STAT         = 16,
+    WMI_REQUEST_CTRL_PATH_VDEV_DEBUG_STAT   = 17,
 } wmi_ctrl_path_stats_id;
 
 typedef enum {
@@ -34806,6 +34826,18 @@ typedef enum wmi_hw_mode_config_type {
 #define WMI_EXT_MLD_OPERATION_PARAMETER_UPDATE_SUPP_GET(ext_mld_capability) WMI_GET_BITS(ext_mld_capability, 0, 1)
 #define WMI_EXT_MLD_OPERATION_PARAMETER_UPDATE_SUPP_SET(ext_mld_capability, value) WMI_SET_BITS(ext_mld_capability, 0, 1, value)
 
+/*
+ * 11BE MSD Capability Set and Get macros
+ */
+#define WMI_MEDIUM_SYNC_DURATION_GET(msd_capability) WMI_GET_BITS(msd_capability, 0, 8)
+#define WMI_MEDIUM_SYNC_DURATION_SET(msd_capability,value) WMI_SET_BITS(msd_capability, 0, 8, value)
+
+#define WMI_MEDIUM_SYNC_OFDM_ED_THRESHOLD_GET(msd_capability) WMI_GET_BITS(msd_capability, 8, 4)
+#define WMI_MEDIUM_SYNC_OFDM_ED_THRESHOLD_SET(msd_capability, value) WMI_SET_BITS(msd_capability, 8, 4, value)
+
+#define WMI_MEDIUM_SYNC_MAX_NO_TXOPS_GET(msd_capability) WMI_GET_BITS(msd_capability, 12, 4)
+#define WMI_MEDIUM_SYNC_MAX_NO_TXOPS_SET(msd_capability, value) WMI_SET_BITS(msd_capability, 12, 4, value)
+
 typedef struct {
     A_UINT32 tlv_header; /* TLV tag and len; tag equals WMITLV_TAG_STRUC_WMI_MAC_PHY_CAPABILITIES */
     /* hw_mode_id - identify a particular set of HW characteristics, as specified
@@ -35088,6 +35120,15 @@ typedef struct {
                 reserved3: 31;
         };
         A_UINT32 ext_mld_capability;
+    };
+    union {
+        struct {
+            A_UINT32 medium_sync_duration:8,
+                     medium_sync_ofdm_ed_threshold:4,
+                     medium_sync_max_no_txops:4,
+                     reserved4: 16;
+        };
+        A_UINT32 msd_capability;
     };
 } WMI_MAC_PHY_CAPABILITIES_EXT;
 
@@ -45605,6 +45646,62 @@ typedef struct {
     A_UINT32 pause_dur_ms;
 } wmi_vdev_pause_cmd_fixed_param;
 
+typedef struct {
+    A_UINT32 tlv_header;
+    A_UINT32 ieee_link_id; /* key to identify a link */
+    wmi_channel wmi_chan;
+} wmi_mlo_link_bss_param;
+
+typedef struct {
+    A_UINT32 tlv_header;
+    wmi_mac_addr ap_mld_macaddr;
+
+    /*
+     * The TLVs listed below follow this fixed_param TLV:
+     * wmi_mlo_link_bss_param link_bss_params[]:
+     *     an array of links to be updated
+     */
+} wmi_mlo_set_link_bss_params_cmd_fixed_param;
+
+typedef enum _WMI_LINK_SWITCH_REASON{
+    WMI_MLO_LINK_SWITCH_REASON_RSSI_CHANGE = 1,
+    WMI_MLO_LINK_SWITCH_REASON_LOW_QUALITY = 2,
+    WMI_MLO_LINK_SWITCH_REASON_C2_CHANGE   = 3,
+    WMI_MLO_LINK_SWITCH_REASON_HOST_FORCE  = 4,
+    WMI_MLO_LINK_SWITCH_REASON_T2LM        = 5,
+    WMI_MLO_LINK_SWITCH_REASON_MAX,
+} WMI_LINK_SWITCH_REASON;
+
+typedef struct {
+    A_UINT32 tlv_header;
+
+    A_UINT32 vdev_id;   /*the vdev id assigned to curr_ieee_link_id*/
+    A_UINT32 curr_ieee_link_id; /*current link id on above vdev_id*/
+    A_UINT32 new_ieee_link_id; /*new link id on above vdev_id*/
+    A_UINT32 new_primary_freq; /*primay_freq for the new link on the vdev, in units of MHZ*/
+    A_UINT32 new_phymode; /*phymode for the new link on the vdev, see WLAN_PHY_MODE for definitions*/
+    A_UINT32 reason;      /*see WMI_LINK_SWITCH_REASON for definition*/
+} wmi_mlo_link_switch_req_evt_fixed_param;
+
+typedef enum _WMI_LINK_SWITCH_CNF_REASON{
+    WMI_MLO_LINK_SWITCH_CNF_REASON_BSS_PARAMS_CHANGED = 1,
+    WMI_MLO_LINK_SWITCH_CNF_REASON_CONCURRECNY_CONFLICT = 2,
+    WMI_MLO_LINK_SWITCH_CNF_REASON_HOST_INTERNAL_ERROR = 3,
+    WMI_MLO_LINK_SWITCH_CNF_REASON_MAX,
+} WMI_LINK_SWITCH_CNF_REASON;
+
+typedef enum _WMI_LINK_SWITCH_CNF_STATUS{
+    WMI_MLO_LINK_SWITCH_CNF_STATUS_ACCEPT = 0,
+    WMI_MLO_LINK_SWITCH_CNF_STATUS_REJECT = 1,
+} WMI_LINK_SWITCH_CNF_STATUS;
+
+typedef struct {
+    A_UINT32 tlv_header;
+
+    A_UINT32 vdev_id;
+    A_UINT32 status;  /*see definition of WMI_LINK_SWITCH_CNF_STATUS*/
+    A_UINT32 reason;  /*see definition of WMI_LINK_SWITCH_CNF_REASON*/
+} wmi_mlo_link_switch_cnf_fixed_param;
 
 
 /* ADD NEW DEFS HERE */
