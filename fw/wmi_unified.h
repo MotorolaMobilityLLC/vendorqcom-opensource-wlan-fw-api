@@ -9231,6 +9231,37 @@ typedef enum {
      *  1 - Force PCIE Gen Speed and Lane Width to maximum supported value.
      */
     WMI_PDEV_PARAM_PCIE_CONFIG,
+
+    /** CTS timeout - change wireless packet cts timeout configuration,
+     *  units are microseconds
+     */
+    WMI_PDEV_PARAM_CTS_TIMEOUT,
+
+    /** Slot time - change wireless packet slot time value dynamically,
+     *  units are microseconds
+     */
+    WMI_PDEV_PARAM_SLOT_TIME,
+
+    /** VO dedicated time -
+     * allocate dedicated time slots for VO access category across all
+     * ATF groups in a pdev.
+     *   Note :
+     *   1.  Per AC airtime per group is already available through
+     *       ATF WMM WMI commands
+     *   2.  The dedicated time slot is applicable per second
+     *   3.  Units are in milli-seconds
+     */
+    WMI_PDEV_PARAM_ATF_VO_DEDICATED_TIME,
+
+    /** VI dedicated time -
+     * allocate dedicated time slots for VI access category across all
+     * ATF groups in a pdev.
+     *   Note :
+     *   1.  Per AC airtime per group is already given through ATF WMM WMI cmds
+     *   2.  The dedicated time slot is applicable per second
+     *   3.  Units are in milli-seconds
+     */
+    WMI_PDEV_PARAM_ATF_VI_DEDICATED_TIME,
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
