@@ -252,12 +252,9 @@
  * 3.124 Add HTT_T2H_MSG_TYPE_PEER_EXTENDED_EVENT def.
  * 3.125 Expand fisa_aggr_limit bits in fisa_control_bits_v2.
  * 3.126 Add HTT_RXDATA_ERR_INVALID_PEER def.
- * 3.127 Add transmit_count fields in htt_tx_wbm_completion_vX structs.
- * 3.128 Add H2T TX_LATENCY_STATS_CFG + T2H TX_LATENCY_STATS_PERIODIC_IND
- *       msg defs
  */
 #define HTT_CURRENT_VERSION_MAJOR 3
-#define HTT_CURRENT_VERSION_MINOR 128
+#define HTT_CURRENT_VERSION_MINOR 126
 
 #define HTT_NUM_TX_FRAG_DESC  1024
 

@@ -583,14 +583,6 @@ enum htt_dbg_ext_stats_type {
      */
     HTT_DBG_ODD_STATS_PDEV_BE_UL_MUMIMO_TRIG_STATS = 62,
 
-    /** HTT_DBG_MLO_SCHED_STATS
-     * PARAMS:
-     *    - No Params
-     * RESP MSG:
-     *    - htt_dbg_mlo_sched_stats_tlv
-     */
-    HTT_DBG_MLO_SCHED_STATS = 63,
-
 
     /* keep this last */
     HTT_DBG_NUM_EXT_STATS = 256,
