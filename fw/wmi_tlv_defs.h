@@ -1400,9 +1400,6 @@ typedef enum {
     WMITLV_TAG_STRUC_wmi_enhanced_aoa_per_band_caps_param,
     WMITLV_TAG_STRUC_WMI_RADAR_FLAGS,
     WMITLV_TAG_STRUC_wmi_dma_buf_release_cqi_upload_meta_data,
-    WMITLV_TAG_STRUC_wmi_csa_event_status_ind_fixed_param,
-    WMITLV_TAG_STRUC_wmi_mlo_link_state_switch_req_evt_fixed_param,
-    WMITLV_TAG_STRUC_wmi_mlo_link_state_switch_trigger_reason_tlv_param,
 } WMITLV_TAG_ID;
 /*
  * IMPORTANT: Please add _ALL_ WMI Commands Here.

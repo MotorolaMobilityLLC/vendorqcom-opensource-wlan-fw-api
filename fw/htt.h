@@ -252,9 +252,12 @@
  * 3.124 Add HTT_T2H_MSG_TYPE_PEER_EXTENDED_EVENT def.
  * 3.125 Expand fisa_aggr_limit bits in fisa_control_bits_v2.
  * 3.126 Add HTT_RXDATA_ERR_INVALID_PEER def.
+ * 3.127 Add transmit_count fields in htt_tx_wbm_completion_vX structs.
+ * 3.128 Add H2T TX_LATENCY_STATS_CFG + T2H TX_LATENCY_STATS_PERIODIC_IND
+ *       msg defs
  */
 #define HTT_CURRENT_VERSION_MAJOR 3
-#define HTT_CURRENT_VERSION_MINOR 126
+#define HTT_CURRENT_VERSION_MINOR 128
 
 #define HTT_NUM_TX_FRAG_DESC  1024
 
@@ -809,7 +812,6 @@ typedef enum {
     HTT_STATS_CODEL_SVC_CLASS_TAG                  = 188, /* htt_codel_svc_class_stats_tlv */
     HTT_STATS_CODEL_MSDUQ_TAG                      = 189, /* htt_codel_msduq_stats_tlv */
     HTT_STATS_MLO_SCHED_STATS_TAG                  = 190, /* htt_mlo_sched_stats_tlv */
-    HTT_STATS_PDEV_MLO_IPC_STATS_TAG               = 191, /* htt_pdev_mlo_ipc_stats_tlv */
 
 
     HTT_STATS_MAX_TAG,
@@ -22198,8 +22200,8 @@ typedef struct _htt_tx_latency_stats {
         ((_var) |= ((_val) << HTT_T2H_TX_LATENCY_STATS_PERIODIC_IND_GRANULARITY_S)); \
     } while (0)
 
-#define HTT_T2H_TX_LATENCY_STATS_PERIODIC_IND_PAYLOAD_ELEM_SIZE_M    0x00FF0000
-#define HTT_T2H_TX_LATENCY_STATS_PERIODIC_IND_PAYLOAD_ELEM_SIZE_S    16
+#define HTT_T2H_TX_LATENCY_STATS_PERIODIC_IND_PAYLOAD_ELEM_SIZE_M    0xFFFFC000
+#define HTT_T2H_TX_LATENCY_STATS_PERIODIC_IND_PAYLOAD_ELEM_SIZE_S    14
 
 #define HTT_T2H_TX_LATENCY_STATS_PERIODIC_IND_PAYLOAD_ELEM_SIZE_GET(_var) \
     (((_var) & HTT_T2H_TX_LATENCY_STATS_PERIODIC_IND_PAYLOAD_ELEM_SIZE_M) >> HTT_T2H_TX_LATENCY_STATS_PERIODIC_IND_PAYLOAD_ELEM_SIZE_S)
