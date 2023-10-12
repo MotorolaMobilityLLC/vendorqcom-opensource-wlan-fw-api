@@ -9312,9 +9312,6 @@ typedef enum {
 
     /** Parameter used for enabling/disabling RFA toggle for SAP mode */
     WMI_PDEV_PARAM_SET_SAP_RFA_TOGGLE,
-
-    /** Parameter to set PDEV level UL OFDMA RTD */
-    WMI_PDEV_PARAM_UL_OFDMA_RTD,
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
@@ -34571,15 +34568,6 @@ typedef enum wmi_coex_config_type {
      *         Enable all coex policies.
      */
     WMI_COEX_SET_TRAFFIC_SHAPING_MODE = 50,
-    /* WMI_COEX_CONFIG_ENABLE_CONT_INFO
-     * enable contention info log
-     * arg1:
-     *     0: disable both cont/sched log
-     *     1: enable cont log
-     *     2: enable sched log
-     *     3: enable both cont and sched log
-     */
-    WMI_COEX_CONFIG_ENABLE_CONT_INFO = 51,
 } WMI_COEX_CONFIG_TYPE;
 
 typedef struct {
@@ -46305,11 +46293,11 @@ typedef struct {
     * [1:0] Nc
     *       Refer to WMI_DMA_BUF_RELEASE_CV_UPLOAD_[SET,GET]_FB_PARAMS_NC
     * [3:2] nss_num
-    * [4:5] ddr_buffer_idx
+    *       Refer to WMI_DMA_BUF_RELEASE_CV_UPLOAD_[SET,GET]_FB_PARAMS_NSS_NUM
+    * [5:4] ddr_buffer_idx
+    *       Refer to WMI_DMA_BUF_RELEASE_CV_UPLOAD_[SET,GET]_DDR_BUF_IDX
     */
-    A_UINT32 fb_params:       4,
-             ddr_buffer_idx:  2,
-             reserved:       26;
+    A_UINT32 fb_params;
 } wmi_dma_buf_release_cv_upload_meta_data;
 
 typedef struct {
