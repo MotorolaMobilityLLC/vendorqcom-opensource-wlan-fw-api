@@ -9331,9 +9331,6 @@ typedef enum {
 
     /** Parameter to set PDEV level UL OFDMA RTD */
     WMI_PDEV_PARAM_UL_OFDMA_RTD,
-
-    /** Parameter to enable/disable tid0 and tid3 mapping to work 3 Link MLO */
-    WMI_PDEV_PARAM_TID_MAPPING_3LINK_MLO,
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
@@ -18226,11 +18223,6 @@ typedef enum {
      * Disable FW initiated Information frame for TWT
      */
     WMI_VDEV_PARAM_DISABLE_TWT_INFO_FRAME,                /* 0xC0 */
-
-    /*
-     * Set the Recommended Max allowed active links
-     */
-    WMI_VDEV_PARAM_MLO_MAX_RECOM_ACTIVE_LINKS,            /* 0xC1 */
 
 
     /*=== ADD NEW VDEV PARAM TYPES ABOVE THIS LINE ===
@@ -34635,6 +34627,15 @@ typedef enum wmi_coex_config_type {
      *         Enable all coex policies.
      */
     WMI_COEX_SET_TRAFFIC_SHAPING_MODE = 50,
+    /* WMI_COEX_CONFIG_ENABLE_CONT_INFO
+     * enable contention info log
+     * arg1:
+     *     0: disable both cont/sched log
+     *     1: enable cont log
+     *     2: enable sched log
+     *     3: enable both cont and sched log
+     */
+    WMI_COEX_CONFIG_ENABLE_CONT_INFO = 51,
 } WMI_COEX_CONFIG_TYPE;
 
 typedef struct {
