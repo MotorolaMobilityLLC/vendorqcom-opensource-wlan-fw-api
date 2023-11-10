@@ -9336,6 +9336,15 @@ typedef enum {
 
     /** Parameter to set PDEV level UL OFDMA RTD */
     WMI_PDEV_PARAM_UL_OFDMA_RTD,
+
+    /** Parameter to enable/disable tid0 and tid3 mapping to work 3 Link MLO */
+    WMI_PDEV_PARAM_TID_MAPPING_3LINK_MLO,
+
+    /** Parameter to enable/disable small OFDMA M-RUs **/
+    WMI_PDEV_PARAM_ENABLE_SMALL_MRU,
+
+    /** Parameter to enable/disable large OFDMA M-RUs **/
+    WMI_PDEV_PARAM_ENABLE_LARGE_MRU,
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
