@@ -1355,17 +1355,6 @@ typedef htt_stats_whal_tx_tlv htt_hw_stats_whal_tx_tlv;
 
 typedef struct {
     htt_tlv_hdr_t tlv_hdr;
-
-    A_UINT32 wsib_event_watchdog_timeout;
-    A_UINT32 wsib_event_slave_tlv_length_error;
-    A_UINT32 wsib_event_slave_parity_error;
-    A_UINT32 wsib_event_slave_direct_message;
-    A_UINT32 wsib_event_slave_backpressure_error;
-    A_UINT32 wsib_event_master_tlv_length_error;
-} htt_stats_whal_wsi_tlv;
-
-typedef struct {
-    htt_tlv_hdr_t tlv_hdr;
     /**
      * BIT [ 7 :  0]   :- mac_id
      * BIT [31 :  8]   :- reserved
@@ -5504,11 +5493,6 @@ typedef struct {
     A_UINT32 tx_fail_time_us_high;
     A_UINT32 pdev_up_time_us_low;
     A_UINT32 pdev_up_time_us_high;
-    /** tx_ofdma_ppdu_dur_hist:
-     * Tx OFDMA PPDU duration histogram, which holds the tx duration of
-     * OFDMA PPDUs under histogram bins of interval 250us
-     */
-    A_UINT32 tx_ofdma_ppdu_dur_hist[HTT_PDEV_STATS_PPDU_DUR_HIST_BINS];
 } htt_stats_tx_pdev_ppdu_dur_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_tx_pdev_ppdu_dur_tlv htt_tx_pdev_ppdu_dur_stats_tlv;
@@ -8198,41 +8182,6 @@ typedef struct {
     A_UINT32 fw_run_time;
     /** per chain runtime noise floor values in dBm */
     A_INT32 runTime_nf_chain[HTT_STATS_MAX_CHAINS];
-
-    /** DFS SW based progressive stats - start **/
-
-    /* current AP operating bandwidth (refer to WLAN_PHY_MODE) */
-    A_UINT32 current_OBW;
-    /* current AP device bandwidth (refer to WLAN_PHY_MODE) */
-    A_UINT32 current_DBW;
-    /* last_radar_type: last detected radar type
-     * This last_radar_type field contains a value whose meaning is not
-     * exposed to the host; this field is only provided for debug purposes.
-     */
-    A_UINT32 last_radar_type;
-    /* dfs_reg_domain: curent DFS regulatory domain
-     * This dfs_reg_domain field contains a value whose meaning is not
-     * exposed to the host; this field is only provided for debug purposes.
-     */
-    A_UINT32 dfs_reg_domain;
-    /* radar_mask_bit: Radar mask setting programmed in HW registers.
-     * Each bit represents a 20 MHz portion of the channel.
-     * Bit 0 represents the highest 20 MHz portion within the channel.
-     * For example...
-     * For a 80 MHz channel, bit0 = highest 20 MHz, bit3 = lowest 20 MHz
-     * For a 320 MHz channel, bit0 = highest 20 MHz, bit15 = lowest 20 MHz
-     */
-    A_UINT32 radar_mask_bit;
-    /* DFS radar rssi threshold (units = dBm) */
-    A_INT32 radar_rssi;
-    /* DFS global flags (refer to IEEE80211_CHAN_* defines) */
-    A_UINT32 radar_dfs_flags;
-    /* band center frequency of operating bandwidth (units = MHz) */
-    A_UINT32 band_center_frequency_OBW;
-    /* band center frequency of device bandwidth (units = MHz) */
-    A_UINT32 band_center_frequency_DBW;
-
-    /** DFS SW based progressive stats - end **/
 } htt_stats_phy_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_phy_stats_tlv htt_phy_stats_tlv;
@@ -9491,19 +9440,6 @@ typedef struct {
     /** Num of instances where dl ofdma is disabled because there are consecutive mpdu failure */
     A_UINT32 dlofdma_disabled_consec_no_mpdus_success[HTT_NUM_AC_WMM];
     A_UINT32 txbf_ofdma_ineligibility_stat[HTT_STATS_SCHED_OFDMA_TXBF_INELIGIBILITY_MAX];
-    /** Average channel access latency histogram stats
-     *
-     *  avg_chan_acc_lat_hist[0]: channel access latency is < 100 us
-     *  avg_chan_acc_lat_hist[1]: 100 us <= channel access latency < 200 us
-     *  avg_chan_acc_lat_hist[2]: 200 us <= channel access latency < 300 us
-     *  avg_chan_acc_lat_hist[3]: 300 us <= channel access latency < 400 us
-     *  avg_chan_acc_lat_hist[4]: 400 us <= channel access latency < 500 us
-     *  avg_chan_acc_lat_hist[5]: 500 us <= channel access latency < 1000 us
-     *  avg_chan_acc_lat_hist[6]: 1000 us <= channel access latency < 1500 us
-     *  avg_chan_acc_lat_hist[7]: 1500 us <= channel access latency < 2000 us
-     *  avg_chan_acc_lat_hist[8]: channel access latency is >= 2000 us
-    */
-    A_UINT32 avg_chan_acc_lat_hist[HTT_MAX_NUM_CHAN_ACC_LAT_INTR];
 } htt_stats_pdev_sched_algo_ofdma_stats_tlv;
 /* preserve old name alias for new name consistent with the tag name */
 typedef htt_stats_pdev_sched_algo_ofdma_stats_tlv

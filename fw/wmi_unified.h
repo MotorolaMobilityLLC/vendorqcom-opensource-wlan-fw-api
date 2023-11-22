@@ -9339,21 +9339,6 @@ typedef enum {
 
     /** Parameter to enable/disable tid0 and tid3 mapping to work 3 Link MLO */
     WMI_PDEV_PARAM_TID_MAPPING_3LINK_MLO,
-
-    /** Parameter to enable/disable small OFDMA M-RUs **/
-    WMI_PDEV_PARAM_ENABLE_SMALL_MRU,
-
-    /** Parameter to enable/disable large OFDMA M-RUs **/
-    WMI_PDEV_PARAM_ENABLE_LARGE_MRU,
-
-    /** Parameter to enable/disable delayed LMR feedback.
-     * Note: Delayed LMR feedback is supported only up to two ranging peers to
-     * enable Location certification
-     * 0 - Immediate LMR feedback is enabled for all ranging peers.
-     * 1 (non zero) - delayed LMR feedback is enabled. Third peer onward will
-     *     default to immediate LMR feedback.
-     **/
-    WMI_PDEV_PARAM_ENABLE_DELAYED_LMR_FEEDBACK,
 } WMI_PDEV_PARAM;
 
 #define WMI_PDEV_ONLY_BSR_TRIG_IS_ENABLED(trig_type) WMI_GET_BITS(trig_type, 0, 1)
@@ -18256,6 +18241,11 @@ typedef enum {
      * Disable FW initiated Information frame for TWT
      */
     WMI_VDEV_PARAM_DISABLE_TWT_INFO_FRAME,                /* 0xC0 */
+
+    /*
+     * Set the Recommended Max allowed active links
+     */
+    WMI_VDEV_PARAM_MLO_MAX_RECOM_ACTIVE_LINKS,            /* 0xC1 */
 
 
     /*=== ADD NEW VDEV PARAM TYPES ABOVE THIS LINE ===
@@ -37072,8 +37062,6 @@ static INLINE A_UINT8 *wmi_id_to_name(A_UINT32 wmi_command)
         WMI_RETURN_STRING(WMI_VDEV_SCHED_MODE_PROBE_REQ_CMDID);
         WMI_RETURN_STRING(WMI_VDEV_OOB_CONNECTION_REQ_CMDID);
         WMI_RETURN_STRING(WMI_AUDIO_TRANSPORT_SWITCH_RESP_STATUS_CMDID);
-        WMI_RETURN_STRING(WMI_PEER_MULTIPLE_REORDER_QUEUE_SETUP_CMDID);
-        WMI_RETURN_STRING(WMI_COEX_MULTIPLE_CONFIG_CMDID);
     }
 
     return (A_UINT8 *) "Invalid WMI cmd";
